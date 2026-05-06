@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AERO Wallet</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #F2F4F7;
+            --header: rgba(255, 255, 255, 0.8);
+            --accent: #6366F1; /* Electric Indigo */
+            --success: #10B981;
+            --danger: #EF4444;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --text: #1F2937;
+            --text-muted: #6B7280;
+            --border: rgba(0, 0, 0, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            -webkit-font-smoothing: antialiased; 
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100dvh; width: 100vw;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden; display: flex; flex-direction: column; color: var(--text);
+        }
+
+        /* Header */
+        header {
+            background: var(--header); 
+            backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: env(safe-area-inset-top) 16px 0 16px;
+            height: calc(65px + env(safe-area-inset-top));
+            border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100;
+        }
+
+        .traffic-lights { display: flex; gap: 6px; align-items: center; width: 40px; }
+        .traffic-lights span { 
+            display: inline-block; 
+            width: 12px; height: 12px; 
+            border-radius: 50%; 
+            flex-shrink: 0; 
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .r { background: #ff5f57; } .y { background: #febc2e; } .g { background: #28c840; }
+
+        .segmented-control {
+            display: flex; background: #E5E7EB; padding: 3px; border-radius: 12px;
+        }
+
+        .segment {
+            padding: 6px 16px; font-size: 13px; font-weight: 600; color: var(--text-muted);
+            border: none; background: none; border-radius: 9px; font-family: inherit; cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .segment.active { background: #fff; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .header-actions { width: 40px; display: flex; justify-content: flex-end; }
+        .icon-btn { background: transparent; border: none; color: var(--text-muted); padding: 5px; cursor: pointer; }
+
+        main { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 40px; position: relative; }
+
+        /* Buttons */
+        .btn-main { 
+            background: var(--accent); color: white; border: none; padding: 18px; 
+            border-radius: 20px; font-size: 16px; font-weight: 600; font-family: inherit; 
+            cursor: pointer; width: 100%; transition: transform 0.1s;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+        .btn-main:active { transform: scale(0.97); }
+        
+        .btn-outline { 
+            background: #fff; border: 1px solid var(--border); color: var(--text); 
+            padding: 18px; border-radius: 20px; font-size: 16px; font-weight: 600; 
+            font-family: inherit; cursor: pointer; width: 100%; transition: transform 0.1s;
+            box-shadow: var(--shadow);
+        }
+        .btn-outline:active { transform: scale(0.97); }
+
+        /* Inputs */
+        input[type="password"], textarea {
+            width: 100%; background: #fff; border: 1px solid var(--border); color: var(--text); 
+            padding: 18px; border-radius: 16px; font-family: inherit; font-size: 16px;
+            margin-bottom: 15px; resize: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        input[type="password"]:focus, textarea:focus { border-color: var(--accent); }
+        
+        /* Views */
+        .auth-screen { display: flex; flex-direction: column; gap: 15px; text-align: center; justify-content: center; height: 100%; }
+
+        .brand-logo { height: 29px; object-fit: contain; margin-bottom: 10px; }
+
+        /* Dashboard Items */
+        .balance-card { 
+            padding: 40px 20px; text-align: center; 
+            background: var(--card-bg); backdrop-filter: blur(20px);
+            border-radius: 28px; border: 1px solid var(--glass-border); 
+            margin-bottom: 25px; box-shadow: var(--shadow);
+        }
+        .balance-amount { font-size: 42px; font-weight: 600; margin: 10px 0; color: var(--text); letter-spacing: -1px; }
+        .address-pill { 
+            background: #fff; border: 1px solid var(--border); padding: 8px 16px; 
+            border-radius: 24px; font-size: 12px; color: var(--text-muted); 
+            display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+        }
+
+        .market-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; background: var(--card-bg); border-radius: 20px; margin-bottom: 12px;
+            border: 1px solid var(--glass-border); transition: 0.2s; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .market-item:active { transform: translateY(2px); opacity: 0.8; }
+        
+        .coin-img { width: 36px; height: 36px; border-radius: 12px; }
+        .coin-price { text-align: right; }
+        .price-up { color: var(--success); font-size: 13px; font-weight: 600; }
+
+        /* Overlays */
+        .overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(242, 244, 247, 0.98); z-index: 1000; display: none; 
+            flex-direction: column; padding: 40px 24px; overflow-y: auto; 
+            backdrop-filter: blur(15px); justify-content: center; 
+        }
+        
+        /* Seed Phrase UI */
+        .seed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; }
+        .seed-word { 
+            background: #fff; padding: 14px 8px; border-radius: 12px; 
+            font-size: 14px; color: var(--text); text-align: center; 
+            border: 1px solid var(--border); font-family: monospace; 
+            display: flex; gap: 6px; justify-content: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .seed-num { color: var(--text-muted); font-size: 10px; }
+
+        #qr-container { 
+            background: white; padding: 20px; border-radius: 24px; 
+            display: inline-block; margin: 25px 0; 
+            box-shadow: var(--shadow); border: 1px solid var(--border);
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="traffic-lights">
+            <span class="r"></span><span class="y"></span><span class="g"></span>
+        </div>
+        <img src="logo.png" alt="" class="brand-logo" style="height: 24px; margin: 0;" onerror="this.style.display='none'">
+        
+        <div class="segmented-control" id="nav-group" style="display:none;">
+            <button class="segment active" onclick="showDashboard()">Wallet</button>
+            <button class="segment" onclick="showMarket()">Market</button>
+        </div>
+        <div class="header-actions">
+            <button id="logout-btn" class="icon-btn hidden" onclick="logoutWallet()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div id="setup-screen" class="auth-screen">
+            <img src="logo.png" alt="AERO" class="brand-logo" style="height: 60px; align-self: center;" onerror="this.after('AERO')">
+            <p style="color: var(--text-muted); margin-bottom: 30px; font-weight: 500;">Secure Multi-Chain Interface</p>
+            <button class="btn-main" onclick="generateWallet()">Create New Wallet</button>
+            <button class="btn-outline" onclick="openImport()">Import Seed Phrase</button>
+        </div>
+
+        <div id="unlock-screen" class="auth-screen hidden">
+            <h1 style="margin-bottom: 5px; font-weight: 600;">Welcome Back</h1>
+            <p style="color: var(--text-muted);">Enter password to decrypt storage</p>
+            <input type="password" id="unlock-pass" placeholder="Password">
+            <button class="btn-main" onclick="unlockWallet()">Unlock Wallet</button>
+            <button class="btn-outline" onclick="logoutWallet()" style="color: var(--danger); margin-top: 10px;">Reset Device</button>
+        </div>
+
+        <div id="dashboard-view" class="hidden">
+            <div class="balance-card">
+                <label style="color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;">Total Balance</label>
+                <div class="balance-amount" id="eth-balance">0.00 ETH</div>
+                <div class="address-pill" onclick="showDeposit()">
+                    <span id="wallet-addr-short">0x000...000</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </div>
+            </div>
+
+            <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 600;">Market Activity</h3>
+            <div id="market-list">
+                <p style="color: #999; text-align: center;">Syncing Market...</p>
+            </div>
+        </div>
+
+        <div id="set-password-overlay" class="overlay">
+            <h2 style="text-align: center; margin-bottom: 5px;">Secure Key</h2>
+            <p style="color: var(--text-muted); text-align: center; margin-bottom: 25px; font-size: 15px;">Set a password to encrypt your storage.</p>
+            <input type="password" id="new-pass" placeholder="New Password">
+            <button class="btn-main" onclick="confirmPassword()">Confirm & Encrypt</button>
+            <button class="btn-outline" style="margin-top: 12px; border:none;" onclick="cancelPassword()">Back</button>
+        </div>
+
+        <div id="seed-overlay" class="overlay">
+            <h2 style="text-align: center; margin-bottom: 5px;">Recovery Phrase</h2>
+            <p style="color: var(--danger); font-size: 14px; text-align: center; line-height: 1.4; font-weight: 500;">Save these 12 words. Access is impossible without them.</p>
+            <div class="seed-grid" id="seed-grid-container"></div>
+            <button class="btn-outline" id="copy-seed-btn" onclick="copySeedPhrase()" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Phrase
+            </button>
+            <button class="btn-main" onclick="confirmSeedSaved()">Phrase is Saved</button>
+        </div>
+
+        <div id="import-overlay" class="overlay" style="justify-content: flex-start;">
+            <h2 style="text-align: center;">Import Phrase</h2>
+            <p style="color: var(--text-muted); text-align: center; margin-bottom: 25px;">Enter your 12-word seed phrase</p>
+            <textarea id="import-phrase" rows="4" placeholder="Enter words separated by spaces..."></textarea>
+            <button class="btn-main" style="margin-top: 20px;" onclick="confirmImport()">Import Wallet</button>
+            <button class="btn-outline" style="margin-top: 12px; border:none;" onclick="closeImport()">Cancel</button>
+        </div>
+
+        <div id="deposit-overlay" class="overlay" style="text-align: center; justify-content: flex-start;">
+            <h2>Receive Assets</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Scan QR code for direct deposit</p>
+            <div><div id="qr-container"></div></div>
+            <p id="full-addr" style="word-break: break-all; margin-top: 20px; font-size: 13px; color: var(--accent); padding: 0 20px;"></p>
+            <button class="btn-outline" style="margin-top: auto;" onclick="closeDeposit()">Close</button>
+        </div>
+
+        <div id="chart-overlay" class="overlay" style="justify-content: flex-start;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                <img id="chart-coin-img" src="" class="coin-img">
+                <h2 id="chart-coin-name" style="margin:0; font-weight: 600;">-</h2>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 20px; border: 1px solid var(--border);">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <button class="btn-outline" style="margin-top: auto;" onclick="closeChart()">Back to Dashboard</button>
+        </div>
+    </main>
+
+    <script>
+        // CORE LOGIC MAINTAINED
+        const ALCHEMY_KEY = "wFvmcaZRJlHluQIrYkmaw";
+        const provider = new ethers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`);
+        
+        let wallet = null;
+        let pendingWallet = null; 
+        let keyToEncrypt = null; 
+        let chartInstance = null;
+
+        window.onload = () => {
+            if (localStorage.getItem('vault_encrypted_data')) {
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('unlock-screen').classList.remove('hidden');
+            }
+        };
+
+        function unlockWallet() {
+            const pass = document.getElementById('unlock-pass').value;
+            if(!pass) return;
+            const encryptedData = localStorage.getItem('vault_encrypted_data');
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, pass);
+                const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
+                if(!decryptedKey) throw new Error();
+                setupWallet(new ethers.Wallet(decryptedKey, provider));
+            } catch(e) { alert("Invalid Password"); }
+        }
+
+        function promptForPassword(privateKey) {
+            keyToEncrypt = privateKey;
+            document.getElementById('import-overlay').style.display = 'none';
+            document.getElementById('seed-overlay').style.display = 'none';
+            document.getElementById('set-password-overlay').style.display = 'flex';
+        }
+
+        function confirmPassword() {
+            const pass = document.getElementById('new-pass').value;
+            if(!pass) return;
+            const encryptedStr = CryptoJS.AES.encrypt(keyToEncrypt, pass).toString();
+            localStorage.setItem('vault_encrypted_data', encryptedStr);
+            setupWallet(new ethers.Wallet(keyToEncrypt, provider));
+            document.getElementById('set-password-overlay').style.display = 'none';
+        }
+
+        function cancelPassword() { document.getElementById('set-password-overlay').style.display = 'none'; }
+
+        function logoutWallet() {
+            if(confirm("Erase all data on this device? Ensure you have your phrase!")) {
+                localStorage.removeItem('vault_encrypted_data');
+                location.reload(); 
+            }
+        }
+
+        function generateWallet() {
+            pendingWallet = ethers.Wallet.createRandom();
+            const grid = document.getElementById('seed-grid-container');
+            grid.innerHTML = "";
+            pendingWallet.mnemonic.phrase.split(' ').forEach((word, i) => {
+                grid.innerHTML += `<div class="seed-word"><span class="seed-num">${i + 1}</span> ${word}</div>`;
+            });
+            document.getElementById('seed-overlay').style.display = 'flex';
+        }
+
+        function copySeedPhrase() {
+            navigator.clipboard.writeText(pendingWallet.mnemonic.phrase);
+            document.getElementById('copy-seed-btn').innerText = "Copied!";
+        }
+
+        function confirmSeedSaved() { promptForPassword(pendingWallet.privateKey); }
+        function openImport() { document.getElementById('import-overlay').style.display = 'flex'; }
+        function closeImport() { document.getElementById('import-overlay').style.display = 'none'; }
+
+        function confirmImport() {
+            try {
+                const imported = ethers.Wallet.fromPhrase(document.getElementById('import-phrase').value.trim());
+                promptForPassword(imported.privateKey);
+            } catch(e) { alert("Invalid Phrase"); }
+        }
+
+        function setupWallet(w) {
+            wallet = w.connect(provider);
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('unlock-screen').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('nav-group').style.display = 'flex';
+            document.getElementById('logout-btn').classList.remove('hidden');
+            document.getElementById('wallet-addr-short').innerText = wallet.address.slice(0,6) + "..." + wallet.address.slice(-4);
+            document.getElementById('full-addr').innerText = wallet.address;
+            updateBalance(); fetchMarket();
+        }
+
+        async function updateBalance() {
+            const b = await provider.getBalance(wallet.address);
+            document.getElementById('eth-balance').innerText = parseFloat(ethers.formatEther(b)).toFixed(4) + " ETH";
+        }
+
+        function showDeposit() {
+            document.getElementById('deposit-overlay').style.display = 'flex';
+            document.getElementById('qr-container').innerHTML = "";
+            new QRCode(document.getElementById('qr-container'), { text: wallet.address, width: 180, height: 180 });
+        }
+        function closeDeposit() { document.getElementById('deposit-overlay').style.display = 'none'; }
+
+        async function fetchMarket() {
+            const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana,binancecoin&order=market_cap_desc&sparkline=true');
+            const data = await r.json();
+            const list = document.getElementById('market-list');
+            list.innerHTML = "";
+            data.forEach(coin => {
+                const div = document.createElement('div');
+                div.className = "market-item";
+                div.onclick = () => showChart(coin);
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <img src="${coin.image}" class="coin-img">
+                        <div><div style="font-weight:600">${coin.name}</div><div style="font-size:11px; color:#999">${coin.symbol.toUpperCase()}</div></div>
+                    </div>
+                    <div class="coin-price">
+                        <div style="font-weight:600">$${coin.current_price.toLocaleString()}</div>
+                        <div class="price-up" style="color:${coin.price_change_percentage_24h >= 0 ? '#10B981' : '#EF4444'}">${coin.price_change_percentage_24h.toFixed(2)}%</div>
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function showChart(coin) {
+            document.getElementById('chart-overlay').style.display = 'flex';
+            document.getElementById('chart-coin-name').innerText = coin.name;
+            document.getElementById('chart-coin-img').src = coin.image;
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: coin.sparkline_in_7d.price.map((_, i) => i),
+                    datasets: [{
+                        data: coin.sparkline_in_7d.price,
+                        borderColor: '#6366F1', borderWidth: 3, pointRadius: 0, fill: true,
+                        backgroundColor: 'rgba(99, 102, 241, 0.05)', tension: 0.4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+            });
+        }
+        function closeChart() { document.getElementById('chart-overlay').style.display = 'none'; }
+        function showDashboard() { 
+            document.querySelectorAll('.segment')[0].classList.add('active');
+            document.querySelectorAll('.segment')[1].classList.remove('active');
+            document.getElementById('market-list').style.display = 'none';
+            document.querySelector('.balance-card').style.display = 'block';
+        }
+        function showMarket() { 
+            document.querySelectorAll('.segment')[1].classList.add('active');
+            document.querySelectorAll('.segment')[0].classList.remove('active');
+            document.querySelector('.balance-card').style.display = 'none';
+            document.getElementById('market-list').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
