@@ -1,1409 +1,1179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AERO Wallet</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-    <!-- Lordicon for animated emoji -->
-    <script src="https://cdn.lordicon.com/lordicon.js"></script>
-
-    <style>
-        :root {
-            --bg: #F2F4F7;
-            --header: rgba(255, 255, 255, 0.8);
-            --accent: #6366F1;
-            --success: #10B981;
-            --danger: #EF4444;
-            --card-bg: rgba(255, 255, 255, 0.7);
-            --text: #1F2937;
-            --text-muted: #6B7280;
-            --border: rgba(0, 0, 0, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
-            --nav-height: 70px;
-        }
-
-        * { 
-            box-sizing: border-box; 
-            -webkit-font-smoothing: antialiased; 
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-        }
-
-        body, html {
-            margin: 0; padding: 0; height: 100dvh; width: 100vw;
-            background-color: var(--bg);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
-            font-family: 'Space Grotesk', sans-serif;
-            overflow: hidden; display: flex; flex-direction: column; color: var(--text);
-        }
-
-        /* Header */
-        header {
-            background: var(--header); 
-            backdrop-filter: blur(20px);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: env(safe-area-inset-top) 16px 0 16px;
-            height: calc(65px + env(safe-area-inset-top));
-            border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100;
-        }
-
-        .traffic-lights { display: flex; gap: 6px; align-items: center; width: 40px; }
-        .traffic-lights span { 
-            display: inline-block; 
-            width: 12px; height: 12px; 
-            border-radius: 50%; 
-            flex-shrink: 0; 
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        .r { background: #ff5f57; } .y { background: #febc2e; } .g { background: #28c840; }
-
-        .segmented-control {
-            display: flex; background: #E5E7EB; padding: 3px; border-radius: 12px;
-        }
-
-        .segment {
-            padding: 6px 16px; font-size: 13px; font-weight: 600; color: var(--text-muted);
-            border: none; background: none; border-radius: 9px; font-family: inherit; cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .segment.active { background: #fff; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        .header-actions { width: 40px; display: flex; justify-content: flex-end; }
-        .icon-btn { background: transparent; border: none; color: var(--text-muted); padding: 5px; cursor: pointer; }
-
-        main { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: calc(var(--nav-height) + 60px); position: relative; }
-
-        /* Buttons */
-        .btn-main { 
-            background: var(--accent); color: white; border: none; padding: 18px; 
-            border-radius: 20px; font-size: 16px; font-weight: 600; font-family: inherit; 
-            cursor: pointer; width: 100%; transition: transform 0.1s;
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
-        }
-        .btn-main:active { transform: scale(0.97); }
-        
-        .btn-outline { 
-            background: #fff; border: 1px solid var(--border); color: var(--text); 
-            padding: 18px; border-radius: 20px; font-size: 16px; font-weight: 600; 
-            font-family: inherit; cursor: pointer; width: 100%; transition: transform 0.1s;
-            box-shadow: var(--shadow);
-        }
-        .btn-outline:active { transform: scale(0.97); }
-
-        /* Inputs */
-        input[type="password"], input[type="text"], input[type="email"], input[type="tel"], textarea {
-            width: 100%; background: #fff; border: 1px solid var(--border); color: var(--text); 
-            padding: 18px; border-radius: 16px; font-family: inherit; font-size: 16px;
-            margin-bottom: 15px; resize: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        input[type="password"]:focus, input[type="text"]:focus, input[type="email"]:focus, 
-        input[type="tel"]:focus, textarea:focus { border-color: var(--accent); }
-        
-        /* Views */
-        .auth-screen { display: flex; flex-direction: column; gap: 15px; text-align: center; justify-content: center; height: 100%; }
-
-        .brand-logo { height: 29px; object-fit: contain; margin-bottom: 10px; }
-
-        /* Dashboard Items */
-        .balance-card { 
-            padding: 40px 20px; text-align: center; 
-            background: var(--card-bg); backdrop-filter: blur(20px);
-            border-radius: 28px; border: 1px solid var(--glass-border); 
-            margin-bottom: 25px; box-shadow: var(--shadow);
-        }
-        .balance-amount { font-size: 42px; font-weight: 600; margin: 10px 0; color: var(--text); letter-spacing: -1px; }
-        .address-pill { 
-            background: #fff; border: 1px solid var(--border); padding: 8px 16px; 
-            border-radius: 24px; font-size: 12px; color: var(--text-muted); 
-            display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-        }
-
-        .market-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px; background: var(--card-bg); border-radius: 20px; margin-bottom: 12px;
-            border: 1px solid var(--glass-border); transition: 0.2s; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
-        .market-item:active { transform: translateY(2px); opacity: 0.8; }
-        
-        .coin-img { width: 36px; height: 36px; border-radius: 12px; }
-        .coin-price { text-align: right; }
-        .price-up { color: var(--success); font-size: 13px; font-weight: 600; }
-
-        /* Overlays */
-        .overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(242, 244, 247, 0.98); z-index: 1000; display: none; 
-            flex-direction: column; padding: 40px 24px; overflow-y: auto; 
-            backdrop-filter: blur(15px); justify-content: center; 
-        }
-        
-        /* Seed Phrase UI */
-        .seed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; }
-        .seed-word { 
-            background: #fff; padding: 14px 8px; border-radius: 12px; 
-            font-size: 14px; color: var(--text); text-align: center; 
-            border: 1px solid var(--border); font-family: monospace; 
-            display: flex; gap: 6px; justify-content: center; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
-        .seed-num { color: var(--text-muted); font-size: 10px; }
-
-        #qr-container { 
-            background: white; padding: 20px; border-radius: 24px; 
-            display: inline-block; margin: 25px 0; 
-            box-shadow: var(--shadow); border: 1px solid var(--border);
-        }
-        .hidden { display: none !important; }
-
-        /* ===== RECEIVE MODAL ANIMATION ===== */
-        #deposit-overlay {
-            background: transparent !important;
-            backdrop-filter: none !important;
-            justify-content: flex-end !important;
-            padding: 0 !important;
-            align-items: flex-end;
-        }
-
-        .receive-backdrop {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0);
-            transition: background 0.4s cubic-bezier(0.32,0.72,0,1);
-            z-index: 0;
-        }
-
-        .receive-sheet {
-            position: relative; z-index: 1;
-            background: #fff;
-            border-radius: 28px 28px 0 0;
-            padding: 28px 24px calc(env(safe-area-inset-bottom) + 32px);
-            width: 100%;
-            transform: translateY(100%);
-            transition: transform 0.45s cubic-bezier(0.32,0.72,0,1);
-            box-shadow: 0 -10px 60px rgba(0,0,0,0.12);
-            text-align: center;
-        }
-
-        #deposit-overlay.open .receive-backdrop { background: rgba(0,0,0,0.35); }
-        #deposit-overlay.open .receive-sheet { transform: translateY(0); }
-
-        .sheet-handle {
-            width: 40px; height: 4px; background: #E5E7EB; border-radius: 4px;
-            margin: 0 auto 20px;
-        }
-
-        /* ===== BOTTOM NAV (floating, 80% width) ===== */
-        #bottom-nav {
-            display: none;
-            position: fixed;
-            bottom: calc(env(safe-area-inset-bottom) + 18px);
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            max-width: 420px;
-            height: var(--nav-height);
-            background: rgba(255,255,255,0.88);
-            backdrop-filter: blur(28px) saturate(1.8);
-            -webkit-backdrop-filter: blur(28px) saturate(1.8);
-            border: 1px solid rgba(255,255,255,0.75);
-            border-radius: 28px;
-            z-index: 500;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-around;
-            box-shadow: 0 8px 40px rgba(99,102,241,0.14), 0 2px 16px rgba(0,0,0,0.08);
-            padding: 0 4px;
-        }
-
-        .nav-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 5px; cursor: pointer; padding: 8px 0;
-            color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
-            transition: color 0.2s;
-            background: none; border: none; font-family: inherit;
-        }
-        .nav-item.active { color: var(--accent); }
-        .nav-item svg { transition: transform 0.2s; }
-        .nav-item:active svg { transform: scale(0.88); }
-
-        /* ===== SEND BOTTOM SHEET ===== */
-        .sheet-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 600; display: none; align-items: flex-end;
-        }
-        .sheet-overlay.open { display: flex; }
-
-        .sheet-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0);
-            transition: background 0.4s cubic-bezier(0.32,0.72,0,1);
-        }
-        .sheet-overlay.open .sheet-bg { background: rgba(0,0,0,0.35); }
-
-        .sheet-panel {
-            position: relative; z-index: 1;
-            background: #fff; border-radius: 28px 28px 0 0;
-            padding: 24px 24px calc(env(safe-area-inset-bottom) + 32px);
-            width: 100%;
-            transform: translateY(110%);
-            transition: transform 0.45s cubic-bezier(0.32,0.72,0,1);
-            box-shadow: 0 -10px 60px rgba(0,0,0,0.12);
-        }
-        .sheet-overlay.open .sheet-panel { transform: translateY(0); }
-
-        .sheet-title {
-            font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 22px;
-        }
-
-        /* Send Form */
-        .send-field {
-            margin-bottom: 14px;
-        }
-        .send-label {
-            font-size: 11px; font-weight: 600; color: var(--text-muted); 
-            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: block;
-        }
-        .send-input {
-            width: 100%; background: #F9FAFB; border: 1px solid #E5E7EB; 
-            color: var(--text); padding: 14px 16px; border-radius: 14px; 
-            font-family: inherit; font-size: 16px; margin-bottom: 0;
-            transition: border-color 0.2s;
-        }
-        .send-input:focus { border-color: var(--accent); background: #fff; }
-
-        .coin-selector {
-            display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;
-        }
-        .coin-chip {
-            display: flex; align-items: center; gap: 7px; padding: 8px 14px;
-            background: #F3F4F6; border: 2px solid transparent; border-radius: 50px;
-            cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit;
-            transition: all 0.18s;
-        }
-        .coin-chip.selected {
-            background: rgba(99,102,241,0.08); border-color: var(--accent); color: var(--accent);
-        }
-        .coin-chip img { width: 20px; height: 20px; border-radius: 50%; }
-
-        /* ===== SETTINGS POPUP ===== */
-        .popup-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 700; display: none; align-items: center; justify-content: center;
-            padding: 24px;
-        }
-        .popup-overlay.open { display: flex; }
-        .popup-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0);
-            transition: background 0.3s;
-        }
-        .popup-overlay.open .popup-bg { background: rgba(0,0,0,0.4); }
-
-        .popup-card {
-            position: relative; z-index: 1;
-            background: #fff; border-radius: 28px;
-            padding: 36px 28px; width: 100%; max-width: 360px;
-            text-align: center;
-            transform: scale(0.85) translateY(20px); opacity: 0;
-            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-        .popup-overlay.open .popup-card { transform: scale(1) translateY(0); opacity: 1; }
-
-        .soon-icon { margin: 0 auto 16px; display: block; }
-
-        /* ===== PROFILE VIEW ===== */
-        #profile-view {
-            display: none; flex-direction: column; min-height: 100%;
-        }
-
-        .profile-header {
-            text-align: center; padding: 20px 0 28px;
-        }
-
-        .profile-avatar-wrap {
-            position: relative; display: inline-block; margin-bottom: 14px; cursor: pointer;
-        }
-
-        .profile-avatar {
-            width: 88px; height: 88px; border-radius: 50%;
-            background: linear-gradient(135deg, #6366F1, #8B5CF6);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px; font-weight: 600; color: white;
-            overflow: hidden;
-        }
-        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-        .avatar-edit-badge {
-            position: absolute; bottom: 2px; right: 2px;
-            width: 26px; height: 26px; border-radius: 50%;
-            background: var(--accent); border: 2px solid #fff;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-        .profile-handle { font-size: 14px; color: var(--text-muted); }
-
-        .profile-form { display: flex; flex-direction: column; gap: 2px; }
-
-        .form-group { margin-bottom: 14px; }
-        .form-label { 
-            font-size: 11px; font-weight: 600; color: var(--text-muted); 
-            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; display: block;
-        }
-        .form-input {
-            width: 100%; background: #F9FAFB; border: 1px solid #E5E7EB; 
-            color: var(--text); padding: 14px 16px; border-radius: 14px; 
-            font-family: inherit; font-size: 15px; margin-bottom: 0;
-            transition: border-color 0.2s;
-        }
-        .form-input:focus { border-color: var(--accent); background: #fff; }
-
-        .kyc-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(239,68,68,0.08); color: var(--danger);
-            padding: 8px 14px; border-radius: 50px; font-size: 12px; font-weight: 600;
-            border: 1px solid rgba(239,68,68,0.2);
-        }
-
-        .demo-footer {
-            margin-top: auto; padding: 16px;
-            background: rgba(99,102,241,0.04); border: 1px solid rgba(99,102,241,0.1);
-            border-radius: 16px; text-align: center;
-        }
-        .demo-footer p { margin: 0; font-size: 11.5px; color: var(--text-muted); line-height: 1.6; }
-        .demo-footer strong { color: var(--accent); }
-
-        /* Profile Save Btn */
-        .btn-save {
-            background: var(--accent); color: white; border: none; padding: 15px; 
-            border-radius: 16px; font-size: 15px; font-weight: 600; font-family: inherit; 
-            cursor: pointer; width: 100%; transition: transform 0.1s, opacity 0.1s;
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25); margin-top: 8px;
-        }
-        .btn-save:active { transform: scale(0.97); }
-
-        /* ===== SPLASH SCREEN ===== */
-        #splash-screen {
-            position: fixed; inset: 0; z-index: 9999;
-            background: #ffffff;
-            display: flex; flex-direction: column;
-            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
-            overflow: hidden;
-            transition: transform 0.55s cubic-bezier(0.32,0.72,0,1), opacity 0.4s ease;
-        }
-
-        #splash-screen.dismissing {
-            transform: translateY(-100%);
-            opacity: 0;
-        }
-
-        .splash-top {
-            flex-shrink: 0;
-            padding: 28px 24px 20px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-
-        .splash-skip-btn {
-            background: #F3F4F6; border: none; border-radius: 50px;
-            padding: 8px 18px; font-family: inherit; font-size: 13px;
-            font-weight: 600; color: #6B7280; cursor: pointer;
-            transition: background 0.18s;
-        }
-        .splash-skip-btn:active { background: #E5E7EB; }
-
-        .splash-hero {
-            flex-shrink: 0;
-            display: flex; flex-direction: column; align-items: center;
-            padding: 10px 24px 28px;
-            text-align: center;
-        }
-
-        .splash-logo {
-            height: 44px; object-fit: contain; margin-bottom: 14px;
-        }
-
-        .splash-tagline {
-            font-size: 24px; font-weight: 700; letter-spacing: -0.5px;
-            color: #111827; margin: 0 0 6px;
-            line-height: 1.25;
-        }
-
-        .splash-sub {
-            font-size: 14px; color: #9CA3AF; font-weight: 500; margin: 0;
-        }
-
-        /* Pull-to-dismiss hint bar */
-        .swipe-hint {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 44px; height: 5px; background: #E5E7EB;
-            border-radius: 0 0 4px 4px;
-        }
-
-        /* References section */
-        .splash-section-label {
-            font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-            text-transform: uppercase; color: #9CA3AF;
-            padding: 0 24px; margin-bottom: 14px;
-        }
-
-        .splash-ref-list {
-            flex: 1; overflow-y: auto;
-            padding: 0 20px;
-            display: flex; flex-direction: column; gap: 12px;
-        }
-
-        .ref-row {
-            display: flex; align-items: center; gap: 14px;
-            background: #F9FAFB; border: 1px solid #F3F4F6;
-            border-radius: 20px; padding: 14px 16px;
-            animation: refRowIn 0.45s cubic-bezier(0.34,1.3,0.64,1) both;
-        }
-        .ref-row:nth-child(1) { animation-delay: 0.15s; }
-        .ref-row:nth-child(2) { animation-delay: 0.25s; }
-        .ref-row:nth-child(3) { animation-delay: 0.35s; }
-
-        @keyframes refRowIn {
-            from { opacity: 0; transform: translateY(18px) scale(0.97); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .ref-thumb {
-            width: 52px; height: 52px; border-radius: 14px;
-            object-fit: cover; flex-shrink: 0;
-            background: #E5E7EB;
-            overflow: hidden; display: flex; align-items: center; justify-content: center;
-        }
-        .ref-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; }
-
-        .ref-info { flex: 1; min-width: 0; }
-        .ref-title { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ref-desc  { font-size: 12px; color: #9CA3AF; font-weight: 500; }
-
-        .ref-status {
-            flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
-        }
-
-        .status-pill {
-            padding: 5px 12px; border-radius: 50px;
-            font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
-
-        .status-pending {
-            background: rgba(245,158,11,0.1); color: #D97706;
-            border: 1px solid rgba(245,158,11,0.2);
-        }
-
-        .status-progress {
-            background: rgba(99,102,241,0.1); color: #6366F1;
-            border: 1px solid rgba(99,102,241,0.2);
-        }
-
-        .status-dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            animation: pulseDot 1.8s ease-in-out infinite;
-        }
-        .dot-pending  { background: #F59E0B; }
-        .dot-progress { background: #6366F1; }
-
-        @keyframes pulseDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%       { opacity: 0.45; transform: scale(0.7); }
-        }
-
-        .splash-footer {
-            flex-shrink: 0; padding: 18px 24px;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
-
-        .splash-cta {
-            width: 100%; padding: 16px; border: none; border-radius: 20px;
-            background: linear-gradient(135deg, #6366F1, #8B5CF6);
-            color: white; font-family: inherit; font-size: 16px; font-weight: 700;
-            cursor: pointer; box-shadow: 0 10px 28px rgba(99,102,241,0.28);
-            transition: transform 0.12s, box-shadow 0.12s;
-            letter-spacing: 0.2px;
-        }
-        .splash-cta:active { transform: scale(0.97); box-shadow: 0 6px 16px rgba(99,102,241,0.2); }
-
-        .splash-powered {
-            font-size: 11px; color: #D1D5DB; font-weight: 500;
-        }
-        .splash-powered strong { color: #9CA3AF; }
-
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AERO — Zero-Cost Crypto Transfers</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #3B6EF8;
+    --blue-light: #5A88FF;
+    --blue-dark: #2451D6;
+    --bg: #F0F4FF;
+    --card: #FFFFFF;
+    --text: #0D1B3E;
+    --text-muted: #6B7A99;
+    --success: #22C55E;
+    --danger: #EF4444;
+    --border: #E2E8F8;
+    --pill-bg: #E8EFFE;
+    --nav-h: 72px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: #C8D5F8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* SCREENS */
+  .screen { display: none; position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: var(--nav-h); }
+  .screen.active { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── ONBOARDING ── */
+  #screen-onboard { background: linear-gradient(160deg, #1A2F80 0%, #0D1B3E 50%, #0A1230 100%); padding-bottom: 0; }
+  .onboard-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 70% 20%, rgba(59,110,248,0.4) 0%, transparent 60%),
+                radial-gradient(circle at 20% 80%, rgba(59,110,248,0.2) 0%, transparent 50%);
+  }
+  .onboard-content { position: relative; z-index: 2; padding: 80px 32px 0; }
+  .onboard-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 60px; }
+  .onboard-logo img { width: 40px; height: 40px; object-fit: contain; }
+  .onboard-logo .wordmark { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 3px; }
+  .onboard-tagline { font-size: 38px; font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 16px; }
+  .onboard-tagline span { color: var(--blue-light); }
+  .onboard-sub { font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.6; margin-bottom: 50px; }
+  .globe-wrap { display: flex; justify-content: center; margin-bottom: 40px; }
+  .globe-svg { width: 220px; opacity: 0.9; }
+  .onboard-actions { display: flex; flex-direction: column; gap: 14px; padding-bottom: 48px; }
+  .btn-primary {
+    background: var(--blue); color: #fff; border: none; border-radius: 16px;
+    padding: 18px; font-size: 16px; font-weight: 600; font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer; transition: all .2s; width: 100%;
+    box-shadow: 0 8px 24px rgba(59,110,248,0.45);
+  }
+  .btn-primary:hover { background: var(--blue-light); transform: translateY(-1px); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.08); color: #fff; border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 16px; padding: 18px; font-size: 16px; font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: all .2s; width: 100%;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+
+  /* ── CREATE ACCOUNT ── */
+  #screen-create { background: var(--bg); }
+  .screen-header {
+    padding: 60px 24px 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .back-btn {
+    width: 40px; height: 40px; background: var(--card); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 1.5px solid var(--border); flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .back-btn svg { width: 18px; color: var(--text); }
+  .screen-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .create-form { padding: 0 24px; }
+  .form-group { margin-bottom: 18px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: .5px; }
+  .form-input {
+    width: 100%; padding: 16px 18px; background: var(--card);
+    border: 1.5px solid var(--border); border-radius: 14px;
+    font-family: 'Space Grotesk', sans-serif; font-size: 15px; color: var(--text);
+    outline: none; transition: border-color .2s;
+  }
+  .form-input:focus { border-color: var(--blue); }
+  .form-input::placeholder { color: var(--text-muted); }
+  .avatar-row { display: flex; gap: 10px; margin-bottom: 22px; }
+  .avatar-opt {
+    width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 22px; background: var(--card); transition: border-color .2s;
+  }
+  .avatar-opt.selected { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,110,248,0.2); }
+  .terms { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; }
+  .terms span { color: var(--blue); cursor: pointer; }
+
+  /* ── HOME ── */
+  #screen-home { background: var(--bg); }
+  .home-top {
+    background: linear-gradient(160deg, #1A3080 0%, #2451D6 100%);
+    padding: 60px 24px 100px; position: relative; overflow: hidden;
+  }
+  .home-top::after {
+    content: ''; position: absolute; bottom: -50px; left: -10%; right: -10%;
+    height: 100px; background: var(--bg); border-radius: 50% 50% 0 0; z-index: 1;
+  }
+  .home-top-inner { position: relative; z-index: 2; }
+  .home-greeting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+  .home-greeting { font-size: 16px; color: rgba(255,255,255,0.7); }
+  .home-name { font-size: 20px; font-weight: 700; color: #fff; }
+  .home-avatar {
+    width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    border: 2px solid rgba(255,255,255,0.3); cursor: pointer;
+  }
+  .balance-label { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .balance-amount { font-size: 40px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .balance-sub { font-size: 14px; color: rgba(255,255,255,0.55); }
+  .balance-change { display: inline-flex; align-items: center; gap: 4px; background: rgba(34,197,94,0.2); color: #4ade80; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-top: 8px; }
+
+  /* Quick Actions */
+  .quick-actions { padding: 0 24px; margin-top: -24px; position: relative; z-index: 3; margin-bottom: 24px; }
+  .qa-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: var(--card); border-radius: 20px; padding: 20px 10px; box-shadow: 0 8px 32px rgba(30,50,120,0.1); }
+  .qa-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+  .qa-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+  .qa-icon.blue { background: var(--blue); }
+  .qa-icon.soft { background: var(--pill-bg); }
+  .qa-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+  /* Crypto list */
+  .section-label { padding: 0 24px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .section-label h3 { font-size: 17px; font-weight: 700; color: var(--text); }
+  .section-label span { font-size: 13px; color: var(--blue); font-weight: 600; cursor: pointer; }
+  .crypto-list { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+  .crypto-card {
+    background: var(--card); border-radius: 16px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(30,50,120,0.05); cursor: pointer; transition: transform .15s;
+  }
+  .crypto-card:hover { transform: translateX(2px); }
+  .crypto-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
+  .crypto-info { flex: 1; }
+  .crypto-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .crypto-sym { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .crypto-right { text-align: right; }
+  .crypto-price { font-size: 15px; font-weight: 700; color: var(--text); }
+  .crypto-change { font-size: 12px; font-weight: 600; }
+  .crypto-change.pos { color: var(--success); }
+  .crypto-change.neg { color: var(--danger); }
+  .mini-chart { width: 60px; height: 30px; }
+
+  /* ── MARKET ── */
+  #screen-market { background: var(--bg); }
+  .market-header { padding: 60px 24px 20px; }
+  .market-title { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .market-sub { font-size: 14px; color: var(--text-muted); }
+  .search-bar {
+    margin: 0 24px 20px; background: var(--card); border-radius: 14px;
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    border: 1.5px solid var(--border);
+  }
+  .search-bar input { flex: 1; border: none; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 15px; color: var(--text); background: transparent; }
+  .search-bar input::placeholder { color: var(--text-muted); }
+  .filter-row { display: flex; gap: 8px; padding: 0 24px 18px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-pill {
+    padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    background: var(--card); color: var(--text-muted); white-space: nowrap;
+    cursor: pointer; border: 1.5px solid var(--border); transition: all .2s;
+  }
+  .filter-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .market-list { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+  .market-row {
+    background: var(--card); border-radius: 16px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 8px rgba(30,50,120,0.05);
+  }
+  .market-rank { font-size: 12px; color: var(--text-muted); font-weight: 700; width: 20px; flex-shrink: 0; }
+  .market-cap { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── SEND ── */
+  #screen-send { background: var(--bg); }
+  .send-to-row { padding: 0 24px 20px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+  .send-to-row::-webkit-scrollbar { display: none; }
+  .contact-chip {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    flex-shrink: 0; cursor: pointer;
+  }
+  .contact-avatar {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; border: 2.5px solid var(--border);
+  }
+  .contact-name { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+  .add-contact {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--pill-bg);
+    display: flex; align-items: center; justify-content: center;
+    border: 2px dashed var(--border); cursor: pointer;
+  }
+  .amount-pad { padding: 0 24px; }
+  .amount-display {
+    background: var(--card); border-radius: 20px; padding: 24px;
+    text-align: center; margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(30,50,120,0.07);
+  }
+  .amount-label { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .amount-value { font-size: 42px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .amount-usd { font-size: 15px; color: var(--text-muted); }
+  .asset-select {
+    background: var(--pill-bg); display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 20px; margin-top: 10px; cursor: pointer;
+  }
+  .asset-select img { width: 22px; height: 22px; border-radius: 50%; }
+  .asset-select span { font-size: 14px; font-weight: 700; color: var(--text); }
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .num-key {
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 18px; font-size: 20px; font-weight: 600; color: var(--text);
+    font-family: 'Space Grotesk', sans-serif; cursor: pointer; text-align: center;
+    transition: all .15s;
+  }
+  .num-key:hover { background: var(--pill-bg); }
+  .num-key.action { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .recipient-box {
+    background: var(--card); border-radius: 16px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+    border: 1.5px solid var(--border);
+  }
+  .recipient-box input { flex: 1; border: none; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px; color: var(--text); background: transparent; }
+  .recipient-box input::placeholder { color: var(--text-muted); }
+  .scan-btn { background: var(--blue); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+
+  /* ── SWAP ── */
+  #screen-swap { background: var(--bg); }
+  .swap-box { margin: 0 24px 16px; }
+  .swap-token-card {
+    background: var(--card); border-radius: 18px; padding: 18px;
+    box-shadow: 0 4px 16px rgba(30,50,120,0.07); position: relative;
+  }
+  .swap-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+  .swap-token-row { display: flex; align-items: center; gap: 12px; }
+  .swap-token-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--pill-bg); padding: 8px 14px; border-radius: 20px; cursor: pointer;
+  }
+  .swap-token-pill img { width: 24px; height: 24px; border-radius: 50%; }
+  .swap-token-pill span { font-size: 15px; font-weight: 700; color: var(--text); }
+  .swap-amount-input { flex: 1; text-align: right; font-size: 24px; font-weight: 700; color: var(--text); font-family: 'Space Grotesk', sans-serif; border: none; outline: none; background: transparent; }
+  .swap-usd-val { font-size: 12px; color: var(--text-muted); margin-top: 6px; text-align: right; }
+  .swap-divider { display: flex; justify-content: center; margin: -2px 0; position: relative; z-index: 2; }
+  .swap-flip-btn {
+    width: 44px; height: 44px; background: var(--blue); border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(59,110,248,0.4);
+    transition: transform .3s;
+  }
+  .swap-flip-btn:hover { transform: rotate(180deg); }
+  .swap-info { background: var(--card); border-radius: 16px; margin: 0 24px 20px; padding: 14px 16px; }
+  .swap-info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .swap-info-row .key { color: var(--text-muted); font-weight: 500; }
+  .swap-info-row .val { color: var(--text); font-weight: 600; }
+  .swap-info-row .val.green { color: var(--success); }
+
+  /* ── CHART / ASSET DETAIL ── */
+  #screen-chart { background: var(--bg); }
+  .chart-header { padding: 60px 24px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .asset-hero { padding: 0 24px 20px; }
+  .asset-hero-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .asset-hero-img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: #eee; }
+  .asset-hero-name { font-size: 22px; font-weight: 700; color: var(--text); }
+  .asset-hero-sym { font-size: 14px; color: var(--text-muted); }
+  .asset-price-big { font-size: 38px; font-weight: 700; color: var(--text); }
+  .chart-period-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .period-pill {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    background: var(--card); color: var(--text-muted); cursor: pointer; border: 1.5px solid var(--border);
+    transition: all .2s;
+  }
+  .period-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  #chart-container { margin: 0 24px; border-radius: 18px; overflow: hidden; background: var(--card); padding: 16px; box-shadow: 0 4px 16px rgba(30,50,120,0.07); margin-bottom: 16px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 24px 20px; }
+  .stat-card { background: var(--card); border-radius: 14px; padding: 14px; box-shadow: 0 2px 8px rgba(30,50,120,0.05); }
+  .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .stat-val { font-size: 16px; font-weight: 700; color: var(--text); }
+
+  /* ── SUCCESS / FAILED ── */
+  #screen-success, #screen-failed { background: var(--bg); display: none; }
+  #screen-success.active, #screen-failed.active { display: flex; flex-direction: column; }
+  .result-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; }
+  .result-icon { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+  .result-icon.success { background: rgba(34,197,94,0.15); }
+  .result-icon.failed { background: rgba(239,68,68,0.12); }
+  .result-title { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .result-sub { font-size: 15px; color: var(--text-muted); line-height: 1.6; text-align: center; margin-bottom: 36px; }
+  .tx-receipt { background: var(--card); border-radius: 20px; width: 100%; padding: 20px; box-shadow: 0 4px 20px rgba(30,50,120,0.08); margin-bottom: 28px; }
+  .tx-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-key { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .tx-val { font-size: 13px; color: var(--text); font-weight: 700; }
+  .tx-val.green { color: var(--success); }
+  .tx-val.red { color: var(--danger); }
+
+  /* ── ACCOUNT ── */
+  #screen-account { background: var(--bg); }
+  .account-hero { background: linear-gradient(160deg, #1A3080 0%, #2451D6 100%); padding: 60px 24px 36px; text-align: center; }
+  .account-avatar-big { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.15); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; border: 3px solid rgba(255,255,255,0.3); }
+  .account-name { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .account-id { font-size: 13px; color: rgba(255,255,255,0.55); font-family: 'Space Grotesk', monospace; }
+  .account-badges { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+  .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge.verified { background: rgba(34,197,94,0.2); color: #4ade80; }
+  .badge.kyc { background: rgba(59,110,248,0.25); color: #93b8ff; }
+  .account-menu { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .menu-section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; margin-top: 8px; }
+  .menu-item {
+    background: var(--card); border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    transition: transform .15s; box-shadow: 0 2px 8px rgba(30,50,120,0.04);
+  }
+  .menu-item:hover { transform: translateX(2px); }
+  .menu-icon { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .menu-item-text { flex: 1; }
+  .menu-item-label { font-size: 15px; font-weight: 600; color: var(--text); }
+  .menu-item-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .chevron { color: var(--text-muted); }
+
+  /* ── NAVBAR ── */
+  .navbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: var(--nav-h);
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border); display: flex; align-items: center;
+    padding: 0 8px 8px; z-index: 50;
+    box-shadow: 0 -4px 20px rgba(30,50,120,0.08);
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 10px 0; cursor: pointer; transition: all .2s; border-radius: 14px;
+  }
+  .nav-item.active .nav-icon-wrap { background: var(--blue); }
+  .nav-item.active .nav-label { color: var(--blue); }
+  .nav-icon-wrap { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+  .nav-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; }
+  .nav-fab {
+    width: 52px; height: 52px; background: var(--blue); border-radius: 16px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+    box-shadow: 0 8px 24px rgba(59,110,248,0.5); cursor: pointer;
+  }
+
+  /* FUND DEMO */
+  #screen-fund { background: var(--bg); }
+  .fund-cards-row { display: flex; gap: 12px; padding: 0 24px 20px; overflow-x: auto; scrollbar-width: none; }
+  .fund-cards-row::-webkit-scrollbar { display: none; }
+  .fund-demo-card {
+    min-width: 160px; background: linear-gradient(135deg, #1A3080, #3B6EF8);
+    border-radius: 18px; padding: 18px; cursor: pointer; transition: transform .2s;
+  }
+  .fund-demo-card:hover { transform: translateY(-2px); }
+  .fund-card-label { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+  .fund-card-amount { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .fund-card-sub { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .fund-history { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+  .tx-item { background: var(--card); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(30,50,120,0.04); }
+  .tx-type-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tx-type-icon.recv { background: rgba(34,197,94,0.12); }
+  .tx-type-icon.sent { background: rgba(239,68,68,0.1); }
+  .tx-desc { flex: 1; }
+  .tx-desc-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .tx-desc-date { font-size: 12px; color: var(--text-muted); }
+  .tx-amount { font-size: 15px; font-weight: 700; }
+  .tx-amount.pos { color: var(--success); }
+  .tx-amount.neg { color: var(--danger); }
+
+  /* LOADING */
+  .loading-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); margin: 0 3px; animation: bounce .8s infinite alternate; }
+  .loading-dot:nth-child(2) { animation-delay: .2s; }
+  .loading-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { to { transform: translateY(-10px); opacity: .5; } }
+
+  /* COIN IMG ERROR */
+  .coin-fallback { width: 42px; height: 42px; border-radius: 50%; background: var(--pill-bg); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--blue); font-size: 14px; flex-shrink: 0; }
+
+  canvas { display: block; }
+  .price-sparkline { display: flex; }
+</style>
 </head>
 <body>
 
-    <!-- ===== SPLASH / INTRO SCREEN ===== -->
-    <div id="splash-screen">
-        <div class="swipe-hint"></div>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span class="time" id="clock">9:41</span>
+    <span style="display:flex;gap:6px;align-items:center;">
+      <svg width="16" height="12" fill="none"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity=".4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity=".6"/><rect x="9" y="0" width="3" height="12" rx="1" fill="currentColor"/><rect x="13.5" y="1" width="2.5" height="11" rx="1" fill="currentColor" opacity=".3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 24 16" fill="none"><path d="M12 4C8.67 4 5.67 5.33 3.5 7.5L0 4C3.11 1.48 7.38 0 12 0s8.89 1.48 12 4l-3.5 3.5C18.33 5.33 15.33 4 12 4z" fill="currentColor" opacity=".4"/><path d="M12 8c-2.21 0-4.21.9-5.67 2.33L3 7c2.2-2.2 5.24-3.56 8.98-3.56 3.74 0 6.78 1.36 8.98 3.56l-3.33 3.33A7.97 7.97 0 0012 8z" fill="currentColor" opacity=".6"/><circle cx="12" cy="14" r="2" fill="currentColor"/></svg>
+      <span style="font-size:12px;font-weight:700;">100%</span>
+    </span>
+  </div>
 
-        <div class="splash-top">
-            <img src="" class="splash-logo" alt="AERO" onerror="this.style.display='none'">
-            <button class="splash-skip-btn" onclick="dismissSplash()">Skip</button>
+  <!-- ══════════ ONBOARD ══════════ -->
+  <div class="screen active" id="screen-onboard">
+    <div class="onboard-bg"></div>
+    <div class="onboard-content">
+      <div class="onboard-logo">
+        <img src="logo.png" alt="AERO" onerror="this.style.display='none';this.nextElementSibling.textContent='AERO'">
+        <span class="wordmark">AERO</span>
+      </div>
+      <div class="onboard-tagline">Zero-Cost<br>Global <span>Crypto</span><br>Transfers.</div>
+      <div class="onboard-sub">Send money across borders instantly with zero fees — powered by MECOZX blockchain.</div>
+      <div class="globe-wrap">
+        <svg class="globe-svg" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="110" cy="110" r="100" stroke="rgba(59,110,248,0.3)" stroke-width="1.5"/>
+          <circle cx="110" cy="110" r="100" fill="none" stroke="rgba(59,110,248,0.1)" stroke-width="20"/>
+          <!-- meridians -->
+          <ellipse cx="110" cy="110" rx="40" ry="100" stroke="rgba(59,110,248,0.25)" stroke-width="1"/>
+          <ellipse cx="110" cy="110" rx="80" ry="100" stroke="rgba(59,110,248,0.2)" stroke-width="1"/>
+          <line x1="10" y1="110" x2="210" y2="110" stroke="rgba(59,110,248,0.25)" stroke-width="1"/>
+          <line x1="110" y1="10" x2="110" y2="210" stroke="rgba(59,110,248,0.25)" stroke-width="1"/>
+          <!-- orbit rings -->
+          <ellipse cx="110" cy="110" rx="130" ry="35" stroke="rgba(59,110,248,0.2)" stroke-width="1" stroke-dasharray="4 6"/>
+          <ellipse cx="110" cy="110" rx="130" ry="55" stroke="rgba(59,110,248,0.15)" stroke-width="1" stroke-dasharray="4 6" transform="rotate(30 110 110)"/>
+          <!-- nodes -->
+          <circle cx="60" cy="90" r="5" fill="#3B6EF8"/>
+          <circle cx="165" cy="75" r="5" fill="#3B6EF8"/>
+          <circle cx="150" cy="145" r="5" fill="#3B6EF8"/>
+          <circle cx="70" cy="155" r="3" fill="rgba(59,110,248,0.6)"/>
+          <circle cx="110" cy="55" r="4" fill="rgba(59,110,248,0.7)"/>
+          <!-- connection lines -->
+          <line x1="60" y1="90" x2="165" y2="75" stroke="rgba(59,110,248,0.4)" stroke-width="1"/>
+          <line x1="165" y1="75" x2="150" y2="145" stroke="rgba(59,110,248,0.4)" stroke-width="1"/>
+          <line x1="60" y1="90" x2="150" y2="145" stroke="rgba(59,110,248,0.35)" stroke-width="1"/>
+          <line x1="70" y1="155" x2="150" y2="145" stroke="rgba(59,110,248,0.3)" stroke-width="1"/>
+          <line x1="110" y1="55" x2="165" y2="75" stroke="rgba(59,110,248,0.3)" stroke-width="1"/>
+          <!-- center glow -->
+          <circle cx="110" cy="110" r="12" fill="rgba(59,110,248,0.15)"/>
+          <circle cx="110" cy="110" r="6" fill="#3B6EF8"/>
+        </svg>
+      </div>
+      <div class="onboard-actions">
+        <button class="btn-primary" onclick="showScreen('screen-create')">Create Account</button>
+        <button class="btn-ghost" onclick="showScreen('screen-home')">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ CREATE ACCOUNT ══════════ -->
+  <div class="screen" id="screen-create">
+    <div class="screen-header">
+      <div class="back-btn" onclick="showScreen('screen-onboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <span class="screen-title">Create Account</span>
+    </div>
+    <div class="create-form">
+      <div class="form-group">
+        <label class="form-label">Choose Avatar</label>
+        <div class="avatar-row">
+          <div class="avatar-opt selected" onclick="selectAvatar(this)">🦁</div>
+          <div class="avatar-opt" onclick="selectAvatar(this)">🐺</div>
+          <div class="avatar-opt" onclick="selectAvatar(this)">🦊</div>
+          <div class="avatar-opt" onclick="selectAvatar(this)">🐉</div>
+          <div class="avatar-opt" onclick="selectAvatar(this)">🦅</div>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" placeholder="Masrur Ahmmed" value="">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" placeholder="masrur@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="••••••••••">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Wallet PIN</label>
+        <input class="form-input" type="password" placeholder="6-digit PIN" maxlength="6">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Country</label>
+        <input class="form-input" type="text" placeholder="Bangladesh" value="">
+      </div>
+      <div class="terms">By creating an account you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>. AERO wallets are non-custodial — you control your keys.</div>
+      <button class="btn-primary" style="margin-bottom:32px;" onclick="showScreen('screen-home')">
+        Create Wallet →
+      </button>
+    </div>
+  </div>
 
-        <div class="splash-hero">
-            <p class="splash-tagline">The Future of<br>Crypto Spending</p>
-            <p class="splash-sub">Multi-chain · Secure · Instant</p>
+  <!-- ══════════ HOME ══════════ -->
+  <div class="screen" id="screen-home">
+    <div class="home-top">
+      <div class="home-top-inner">
+        <div class="home-greeting-row">
+          <div>
+            <div class="home-greeting">Hey,</div>
+            <div class="home-name">Masrur Ahmmed 👋</div>
+          </div>
+          <div class="home-avatar" onclick="showScreen('screen-account')">🔥</div>
         </div>
-
-        <div class="splash-section-label">References / Funding</div>
-
-        <div class="splash-ref-list" id="splash-ref-list">
-
-            <!-- Row 1 — Pending -->
-            <div class="ref-row">
-                <div class="ref-thumb">
-                    <img src="solana.jpeg" alt="AERO Card" onerror="this.parentNode.innerHTML='<svg width=24 height=24 viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%239CA3AF&quot; stroke-width=2><rect x=1 y=4 width=22 height=16 rx=2/><line x1=1 y1=10 x2=23 y2=10/></svg>'">
-                </div>
-                <div class="ref-info">
-                    <div class="ref-title">Solana Foundation</div>
-                    <div class="ref-desc">Provide Funds to new blockchain projects.</div>
-                </div>
-                <div class="ref-status">
-                    <div class="status-pill status-pending">Pending</div>
-                    <div class="status-dot dot-pending"></div>
-                </div>
-            </div>
-
-            <!-- Row 2 — Pending -->
-            <div class="ref-row">
-                <div class="ref-thumb">
-                    <img src="alchemy.jpeg" alt="AERO Card" onerror="this.parentNode.innerHTML='<svg width=24 height=24 viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%239CA3AF&quot; stroke-width=2><rect x=1 y=4 width=22 height=16 rx=2/><line x1=1 y1=10 x2=23 y2=10/></svg>'">
-                </div>
-                <div class="ref-info">
-                    <div class="ref-title">Alchemy</div>
-                    <div class="ref-desc">Blockchain development platform privide credit fund.</div>
-                </div>
-                <div class="ref-status">
-                    <div class="status-pill status-pending">Pending</div>
-                    <div class="status-dot dot-pending"></div>
-                </div>
-            </div>
-
-            <!-- Row 3 — In Progress -->
-            <div class="ref-row">
-                <div class="ref-thumb">
-                    <img src="grewup.jpeg" alt="AERO Card" onerror="this.parentNode.innerHTML='<svg width=24 height=24 viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%239CA3AF&quot; stroke-width=2><rect x=1 y=4 width=22 height=16 rx=2/><line x1=1 y1=10 x2=23 y2=10/></svg>'">
-                </div>
-                <div class="ref-info">
-                    <div class="ref-title">LMS Platform</div>
-                    <div class="ref-desc">Riseing Fund by selling course.</div>
-                </div>
-                <div class="ref-status">
-                    <div class="status-pill status-progress">In Progress</div>
-                    <div class="status-dot dot-progress"></div>
-                </div>
-            </div>
-
+        <div class="balance-label">Total Portfolio</div>
+        <div class="balance-amount" id="home-balance">$—</div>
+        <div class="balance-sub">AERO Wallet</div>
+        <div class="balance-change">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          +2.4% today
         </div>
-
-        <div class="splash-footer">
-            <button class="splash-cta" onclick="dismissSplash()">Enter AERO</button>
-            <div class="splash-powered">Powered by <strong>@mecozx</strong></div>
-        </div>
+      </div>
     </div>
 
-
-    <header>
-        <div class="traffic-lights">
-            <span class="r"></span><span class="y"></span><span class="g"></span>
+    <div class="quick-actions">
+      <div class="qa-grid">
+        <div class="qa-item" onclick="showScreen('screen-send')">
+          <div class="qa-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <span class="qa-label">Send</span>
         </div>
-        <img src="logo.png" alt="" class="brand-logo" style="height: 24px; margin: 0;" onerror="this.style.display='none'">
-        
-        <div class="segmented-control" id="nav-group" style="display:none;">
-            <button class="segment active" onclick="showDashboard()">Wallet</button>
-            <button class="segment" onclick="showMarket()">Market</button>
+        <div class="qa-item" onclick="showScreen('screen-fund')">
+          <div class="qa-icon soft">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2.2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>
+          </div>
+          <span class="qa-label">Receive</span>
         </div>
-        <div class="header-actions">
-            <button id="logout-btn" class="icon-btn hidden" onclick="logoutWallet()">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            </button>
+        <div class="qa-item" onclick="showScreen('screen-swap')">
+          <div class="qa-icon soft">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2.2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+          </div>
+          <span class="qa-label">Swap</span>
         </div>
-    </header>
-
-    <main>
-        <div id="setup-screen" class="auth-screen">
-            <img src="logo.png" alt="AERO" class="brand-logo" style="height: 60px; align-self: center;" onerror="this.after('AERO')">
-            <p style="color: var(--text-muted); margin-bottom: 30px; font-weight: 500;">Secure Multi-Chain Interface</p>
-            <button class="btn-main" onclick="generateWallet()">Create New Wallet</button>
-            <button class="btn-outline" onclick="openImport()">Import Seed Phrase</button>
+        <div class="qa-item" onclick="showScreen('screen-market')">
+          <div class="qa-icon soft">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <span class="qa-label">Market</span>
         </div>
-
-        <div id="unlock-screen" class="auth-screen hidden">
-            <h1 style="margin-bottom: 5px; font-weight: 600;">Welcome Back</h1>
-            <p style="color: var(--text-muted);">Enter password to decrypt storage</p>
-            <input type="password" id="unlock-pass" placeholder="Password">
-            <button class="btn-main" onclick="unlockWallet()">Unlock Wallet</button>
-            <button class="btn-outline" onclick="logoutWallet()" style="color: var(--danger); margin-top: 10px;">Reset Device</button>
-        </div>
-
-        <div id="dashboard-view" class="hidden">
-            <div class="balance-card">
-                <label style="color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;">Total Balance</label>
-                <div class="balance-amount" id="eth-balance">0.00 ETH</div>
-                <div class="address-pill" onclick="openReceive()">
-                    <span id="wallet-addr-short">0x000...000</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                </div>
-            </div>
-
-            <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 600;">Market Activity</h3>
-            <div id="market-list">
-                <p style="color: #999; text-align: center;">Syncing Market...</p>
-            </div>
-        </div>
-
-        <!-- Profile View -->
-        <div id="profile-view">
-            <div class="profile-header">
-                <div class="profile-avatar-wrap" onclick="triggerAvatarUpload()">
-                    <div class="profile-avatar" id="profile-avatar-display">
-                        <span id="profile-avatar-initials">?</span>
-                    </div>
-                    <div class="avatar-edit-badge">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </div>
-                </div>
-                <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarChange(this)">
-                <div class="profile-name" id="profile-display-name">Your Name</div>
-                <div class="profile-handle" id="profile-display-handle">@username</div>
-            </div>
-
-            <div class="profile-form">
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-input" id="pf-name" placeholder="Enter your full name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" class="form-input" id="pf-username" placeholder="@username">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mobile</label>
-                    <input type="tel" class="form-input" id="pf-mobile" placeholder="+1 000 000 0000">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="pf-email" placeholder="you@example.com">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">KYC Status</label>
-                    <div class="kyc-badge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        Not Verified
-                    </div>
-                </div>
-
-                <button class="btn-save" onclick="saveProfile()">Save Profile</button>
-            </div>
-
-            <div class="demo-footer" style="margin-top: 28px;">
-                <p>This is a demo — this does not represent the final quality of this application.</p>
-                <p style="margin-top:4px;">Powered by <strong>@mecozx</strong></p>
-            </div>
-        </div>
-
-        <div id="set-password-overlay" class="overlay">
-            <h2 style="text-align: center; margin-bottom: 5px;">Secure Key</h2>
-            <p style="color: var(--text-muted); text-align: center; margin-bottom: 25px; font-size: 15px;">Set a password to encrypt your storage.</p>
-            <input type="password" id="new-pass" placeholder="New Password">
-            <button class="btn-main" onclick="confirmPassword()">Confirm & Encrypt</button>
-            <button class="btn-outline" style="margin-top: 12px; border:none;" onclick="cancelPassword()">Back</button>
-        </div>
-
-        <div id="seed-overlay" class="overlay">
-            <h2 style="text-align: center; margin-bottom: 5px;">Recovery Phrase</h2>
-            <p style="color: var(--danger); font-size: 14px; text-align: center; line-height: 1.4; font-weight: 500;">Save these 12 words. Access is impossible without them.</p>
-            <div class="seed-grid" id="seed-grid-container"></div>
-            <button class="btn-outline" id="copy-seed-btn" onclick="copySeedPhrase()" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                Copy Phrase
-            </button>
-            <button class="btn-main" onclick="confirmSeedSaved()">Phrase is Saved</button>
-        </div>
-
-        <div id="import-overlay" class="overlay" style="justify-content: flex-start;">
-            <h2 style="text-align: center;">Import Phrase</h2>
-            <p style="color: var(--text-muted); text-align: center; margin-bottom: 25px;">Enter your 12-word seed phrase</p>
-            <textarea id="import-phrase" rows="4" placeholder="Enter words separated by spaces..."></textarea>
-            <button class="btn-main" style="margin-top: 20px;" onclick="confirmImport()">Import Wallet</button>
-            <button class="btn-outline" style="margin-top: 12px; border:none;" onclick="closeImport()">Cancel</button>
-        </div>
-
-        <!-- RECEIVE SHEET (animated bottom sheet) -->
-        <div id="deposit-overlay" class="overlay" onclick="handleReceiveBackdropClick(event)">
-            <div class="receive-backdrop"></div>
-            <div class="receive-sheet">
-                <div class="sheet-handle"></div>
-                <h2 style="margin: 0 0 6px; font-size: 20px; font-weight: 600;">Receive Assets</h2>
-                <p style="color: var(--text-muted); font-size: 14px; margin: 0 0 4px;">Scan QR code for direct deposit</p>
-                <div><div id="qr-container"></div></div>
-                <p id="full-addr" style="word-break: break-all; margin: 0 0 20px; font-size: 13px; color: var(--accent); padding: 0 10px;"></p>
-                <button class="btn-outline" onclick="closeReceive()">Close</button>
-            </div>
-        </div>
-
-        <div id="chart-overlay" class="overlay" style="justify-content: flex-start;">
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-                <img id="chart-coin-img" src="" class="coin-img">
-                <h2 id="chart-coin-name" style="margin:0; font-weight: 600;">-</h2>
-            </div>
-            <div style="background: white; padding: 15px; border-radius: 20px; border: 1px solid var(--border);">
-                <canvas id="priceChart"></canvas>
-            </div>
-            <button class="btn-outline" style="margin-top: auto;" onclick="closeChart()">Back to Dashboard</button>
-        </div>
-    </main>
-
-    <!-- Bottom Nav (floating, 80%) -->
-    <nav id="bottom-nav">
-        <button class="nav-item active" id="nav-send" onclick="openSendSheet()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-            Send
-        </button>
-        <button class="nav-item" id="nav-card" onclick="openCardPopup()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="3" ry="3"/>
-                <line x1="1" y1="10" x2="23" y2="10"/>
-                <line x1="5" y1="15" x2="9" y2="15"/>
-                <circle cx="17" cy="15" r="1.5" fill="currentColor" stroke="none"/>
-                <circle cx="20" cy="15" r="1.5" fill="currentColor" stroke="none" opacity="0.5"/>
-            </svg>
-            Card
-        </button>
-        <button class="nav-item" id="nav-settings" onclick="openSettings()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            Settings
-        </button>
-        <button class="nav-item" id="nav-profile" onclick="openProfile()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-            </svg>
-            Profile
-        </button>
-    </nav>
-
-    <!-- Send Bottom Sheet -->
-    <div class="sheet-overlay" id="send-sheet">
-        <div class="sheet-bg" onclick="closeSendSheet()"></div>
-        <div class="sheet-panel">
-            <div class="sheet-handle" style="width:40px; height:4px; background:#E5E7EB; border-radius:4px; margin: 0 auto 20px;"></div>
-            <div class="sheet-title">Send Assets</div>
-
-            <div class="send-field">
-                <label class="send-label">Amount</label>
-                <input type="text" class="send-input" id="send-amount" placeholder="0.00">
-            </div>
-
-            <div class="send-field">
-                <label class="send-label">Select Coin</label>
-                <div class="coin-selector" id="coin-selector">
-                    <button class="coin-chip selected" data-coin="ETH" onclick="selectCoin(this)">
-                        <svg width="20" height="20" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#627EEA"/><path d="M16.498 4v8.87l7.497 3.35z" fill="white" fill-opacity=".6"/><path d="M16.498 4L9 16.22l7.498-3.35z" fill="white"/><path d="M16.498 21.968v6.027L24 17.616z" fill="white" fill-opacity=".6"/><path d="M16.498 27.995v-6.028L9 17.616z" fill="white"/><path d="M16.498 20.573l7.497-4.353-7.497-3.348z" fill="white" fill-opacity=".2"/><path d="M9 16.22l7.498 4.353v-7.701z" fill="white" fill-opacity=".6"/></svg>
-                        ETH
-                    </button>
-                    <button class="coin-chip" data-coin="BTC" onclick="selectCoin(this)">
-                        <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#F7931A"/><path d="M22.2 14.2c.3-2-1.2-3.1-3.3-3.8l.7-2.7-1.6-.4-.7 2.6c-.4-.1-.8-.2-1.3-.3l.7-2.7-1.6-.4-.7 2.7c-.3-.1-.7-.2-1-.3l-2.2-.5-.4 1.7s1.2.3 1.1.3c.6.1.8.5.7.9l-1.7 6.7c-.1.3-.4.6-.9.5 0 0-1.1-.3-1.1-.3l-.8 1.8 2.1.5 1.1.3-.7 2.7 1.6.4.7-2.7c.4.1.9.2 1.3.3l-.7 2.7 1.6.4.7-2.7c2.9.5 5 .3 5.9-2.3.7-2.1-.1-3.3-1.5-4.1 1.1-.2 1.9-1 2.2-2.4zm-4 5.6c-.5 2-3.9.9-5 .6l.9-3.5c1.1.3 4.7.8 4.1 2.9zm.5-5.6c-.5 1.8-3.3.9-4.3.7l.8-3.2c1 .3 4.1.7 3.5 2.5z" fill="white"/></svg>
-                        BTC
-                    </button>
-                    <button class="coin-chip" data-coin="SOL" onclick="selectCoin(this)">
-                        <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#9945FF"/><path d="M9.6 19.9a.6.6 0 0 1 .4-.2h13.7c.3 0 .5.4.3.6l-2.1 2.1a.6.6 0 0 1-.4.2H7.8c-.3 0-.5-.4-.3-.6l2.1-2.1zm0-9.7a.6.6 0 0 1 .4-.2h13.7c.3 0 .5.4.3.6l-2.1 2.1a.6.6 0 0 1-.4.2H7.8c-.3 0-.5-.4-.3-.6l2.1-2.1zm11.9 4.9a.6.6 0 0 1-.4.2H7.4c-.3 0-.5-.4-.3-.6l2.1-2.1a.6.6 0 0 1 .4-.2h13.7c.3 0 .5.4.3.6l-2.1 2.1z" fill="white"/></svg>
-                        SOL
-                    </button>
-                    <button class="coin-chip" data-coin="BNB" onclick="selectCoin(this)">
-                        <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#F3BA2F"/><path d="M12.5 14.5L16 11l3.5 3.5 2-2L16 7l-5.5 5.5 2 2zm-3.5 1.5l2-2 2 2-2 2-2-2zm3.5 2.5L16 22l3.5-3.5 2 2L16 26l-5.5-5.5 2-2zm5.5-2.5l2-2 2 2-2 2-2-2zm-3 0l2 2-2 2-2-2 2-2z" fill="white"/></svg>
-                        BNB
-                    </button>
-                </div>
-            </div>
-
-            <div class="send-field" style="margin-top:14px;">
-                <label class="send-label">To (Username or Wallet Address)</label>
-                <input type="text" class="send-input" id="send-to" placeholder="@username or 0x...">
-            </div>
-
-            <button class="btn-main" style="margin-top:18px;" onclick="confirmSend()">
-                <span style="display:inline-flex; align-items:center; gap:8px; justify-content:center;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    Confirm Send
-                </span>
-            </button>
-        </div>
+      </div>
     </div>
 
-    <!-- Settings Popup -->
-    <div class="popup-overlay" id="settings-popup">
-        <div class="popup-bg" onclick="closeSettings()"></div>
-        <div class="popup-card">
-            <lord-icon
-                src="https://cdn.lordicon.com/lupuorrc.json"
-                trigger="loop"
-                delay="500"
-                colors="primary:#6366F1,secondary:#8B5CF6"
-                style="width:72px;height:72px;"
-                class="soon-icon">
-            </lord-icon>
-            <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px;">Settings</h2>
-            <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
-                This feature will be enabled soon. Stay tuned for updates!
-            </p>
-            <button class="btn-main" onclick="closeSettings()">Got it</button>
-        </div>
+    <div class="section-label">
+      <h3>Your Assets</h3>
+      <span onclick="showScreen('screen-market')">See all</span>
     </div>
-
-    <!-- Card Viewer — full screen immersive -->
-    <div id="card-popup" style="
-        display:none; position:fixed; inset:0; z-index:800;
-        background:rgba(8,8,20,0);
-        transition: background 0.4s cubic-bezier(0.32,0.72,0,1);
-        flex-direction:column; align-items:center; justify-content:center;
-        padding: 24px;
-    ">
-        <!-- close tap zone background -->
-        <div onclick="closeCardPopup()" style="position:absolute;inset:0;z-index:0;"></div>
-
-        <!-- Card container with 3D tilt -->
-        <div id="card-scene" style="
-            position:relative; z-index:1; width:100%; max-width:360px;
-            transform: scale(0.7) translateY(60px); opacity:0;
-            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease;
-            transform-style: preserve-3d; perspective: 800px;
-        ">
-            <!-- The card image -->
-            <div id="card-tilt-wrap" style="
-                border-radius: 22px; overflow:hidden;
-                box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15);
-                transition: box-shadow 0.3s;
-                cursor: grab;
-                user-select: none;
-                -webkit-user-select: none;
-            ">
-                <img id="card-img" src="card.jpg" alt="AERO Card"
-                    style="width:100%; display:block; border-radius:22px;"
-                    onerror="this.style.display='none'; document.getElementById('card-fallback').style.display='flex';">
-
-                <!-- Fallback if card.jpg not found -->
-                <div id="card-fallback" style="
-                    display:none; width:100%; aspect-ratio:1.586/1;
-                    background: linear-gradient(135deg, rgba(220,230,245,0.9) 0%, rgba(240,245,255,0.95) 50%, rgba(200,215,235,0.9) 100%);
-                    border-radius:22px; align-items:center; justify-content:center;
-                    flex-direction:column; gap:10px;
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.6);
-                ">
-                    <!-- Frosted glass card recreation -->
-                    <div style="position:absolute;inset:0; border-radius:22px; overflow:hidden;">
-                        <div style="position:absolute;top:18px;left:20px;">
-                            <div style="font-size:9px;color:rgba(80,100,130,0.7);letter-spacing:1px;font-weight:600;text-transform:uppercase;">Card Owner:</div>
-                            <div id="card-fallback-name" style="font-size:16px;color:rgba(60,80,110,0.9);font-weight:700;margin-top:2px;">AERO USER</div>
-                        </div>
-                        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%); text-align:center;">
-                            <div style="font-size:36px;font-weight:800;letter-spacing:6px;color:rgba(80,100,130,0.25);">AERO</div>
-                            <div style="font-size:11px;color:rgba(80,100,130,0.4);letter-spacing:2px;">Aero Token</div>
-                        </div>
-                        <div style="position:absolute;bottom:18px;right:20px;text-align:right;">
-                            <div style="font-size:9px;color:rgba(80,100,130,0.5);letter-spacing:1px;font-weight:600;">AERO NETWORK</div>
-                        </div>
-                        <!-- Shine overlay -->
-                        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.4) 0%,transparent 50%,rgba(255,255,255,0.1) 100%); border-radius:22px; pointer-events:none;"></div>
-                    </div>
-                </div>
-
-                <!-- Shimmer overlay on hover -->
-                <div id="card-shine" style="
-                    position:absolute;inset:0; border-radius:22px;
-                    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.18) 0%, transparent 70%);
-                    pointer-events:none; opacity:0; transition: opacity 0.3s;
-                "></div>
-            </div>
-
-            <!-- Coming soon badge below card -->
-            <div style="
-                margin-top:20px; text-align:center;
-                transform: translateY(0); opacity:0;
-                animation: fadeSlideUp 0.5s 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
-            ">
-                <lord-icon
-                    src="https://cdn.lordicon.com/lupuorrc.json"
-                    trigger="loop" delay="600"
-                    colors="primary:#a0aec0,secondary:#cbd5e0"
-                    style="width:40px;height:40px; margin-bottom:6px; display:block; margin:0 auto 8px;">
-                </lord-icon>
-                <div style="color:rgba(255,255,255,0.95); font-size:16px; font-weight:700; letter-spacing:0.3px; margin-bottom:5px;">mecozx. Card</div>
-                <div style="color:rgba(255,255,255,0.5); font-size:12px; line-height:1.55; margin-bottom:18px;">
-                    Physical &amp; virtual card · Multi-chain spending<br>Feature coming soon
-                </div>
-                <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:18px;">
-                    <span style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); border-radius:50px; padding:5px 13px; font-size:11px; font-weight:600; backdrop-filter:blur(8px);">Multi-Chain</span>
-                    <span style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); border-radius:50px; padding:5px 13px; font-size:11px; font-weight:600; backdrop-filter:blur(8px);">Realtime Balance</span>
-                    <span style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); border-radius:50px; padding:5px 13px; font-size:11px; font-weight:600; backdrop-filter:blur(8px);">Biometric</span>
-                </div>
-                <button onclick="closeCardPopup()" style="
-                    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
-                    color: rgba(255,255,255,0.85); padding: 13px 40px; border-radius: 50px;
-                    font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
-                    backdrop-filter: blur(12px); transition: background 0.2s;
-                " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
-                    Close
-                </button>
-            </div>
-        </div>
+    <div class="crypto-list" id="home-crypto-list">
+      <div style="text-align:center;padding:30px;">
+        <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+      </div>
     </div>
+  </div>
 
-    <style>
-        @keyframes fadeSlideUp {
-            from { opacity:0; transform: translateY(16px); }
-            to   { opacity:1; transform: translateY(0); }
-        }
-    </style>
+  <!-- ══════════ MARKET ══════════ -->
+  <div class="screen" id="screen-market">
+    <div class="market-header">
+      <div class="market-title">Market</div>
+      <div class="market-sub" id="market-cap-label">Loading...</div>
+    </div>
+    <div class="search-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7A99" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search coins..." id="market-search" oninput="filterMarket(this.value)">
+    </div>
+    <div class="filter-row">
+      <div class="filter-pill active">All</div>
+      <div class="filter-pill">Top Gainers</div>
+      <div class="filter-pill">Top Losers</div>
+      <div class="filter-pill">DeFi</div>
+      <div class="filter-pill">Layer 1</div>
+    </div>
+    <div class="market-list" id="market-list">
+      <div style="text-align:center;padding:40px;">
+        <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        // CORE LOGIC MAINTAINED
-        const ALCHEMY_KEY = "wFvmcaZRJlHluQIrYkmaw";
-        const provider = new ethers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`);
-        
-        let wallet = null;
-        let pendingWallet = null; 
-        let keyToEncrypt = null; 
-        let chartInstance = null;
+  <!-- ══════════ SEND ══════════ -->
+  <div class="screen" id="screen-send">
+    <div class="screen-header">
+      <div class="back-btn" onclick="showScreen('screen-home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <span class="screen-title">Send Crypto</span>
+    </div>
+    <div style="padding:0 24px 16px;">
+      <label class="form-label">To</label>
+      <div class="recipient-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7A99" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <input type="text" placeholder="Wallet address or @username" id="send-addr">
+        <div class="scan-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg>
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 24px 12px;">
+      <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;">
+        <div class="contact-chip"><div class="add-contact"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><span class="contact-name">New</span></div>
+        <div class="contact-chip" onclick="document.getElementById('send-addr').value='@priya.eth'"><div class="contact-avatar" style="background:#6366f1;">🦊</div><span class="contact-name">Priya</span></div>
+        <div class="contact-chip" onclick="document.getElementById('send-addr').value='@marco.aero'"><div class="contact-avatar" style="background:#10b981;">🐺</div><span class="contact-name">Marco</span></div>
+        <div class="contact-chip" onclick="document.getElementById('send-addr').value='@sami.bd'"><div class="contact-avatar" style="background:#f59e0b;">🦁</div><span class="contact-name">Sami</span></div>
+        <div class="contact-chip" onclick="document.getElementById('send-addr').value='@lin.w'"><div class="contact-avatar" style="background:#ef4444;">🐉</div><span class="contact-name">Lin</span></div>
+      </div>
+    </div>
+    <div class="amount-pad">
+      <div class="amount-display">
+        <div class="amount-label">Amount</div>
+        <div class="amount-value" id="send-amount">0.00</div>
+        <div class="amount-usd" id="send-usd">≈ $0.00</div>
+        <div class="asset-select" id="send-asset-pick" onclick="cycleSendAsset()">
+          <img id="send-asset-img" src="https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png" onerror="this.style.display='none'">
+          <span id="send-asset-sym">BTC</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="numpad" id="numpad"></div>
+      <button class="btn-primary" onclick="processSend()">Send Now →</button>
+    </div>
+  </div>
 
+  <!-- ══════════ SWAP ══════════ -->
+  <div class="screen" id="screen-swap">
+    <div class="screen-header">
+      <div class="back-btn" onclick="showScreen('screen-home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <span class="screen-title">Swap</span>
+    </div>
+    <div class="swap-box">
+      <div class="swap-token-card" style="border-radius:18px 18px 6px 6px;">
+        <div class="swap-label">You Pay</div>
+        <div class="swap-token-row">
+          <div class="swap-token-pill" id="swap-from-pill">
+            <img id="swap-from-img" src="https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png" onerror="this.style.display='none'">
+            <span id="swap-from-sym">BTC</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <input class="swap-amount-input" id="swap-from-val" type="number" value="0.1" oninput="updateSwapRate()">
+        </div>
+        <div class="swap-usd-val" id="swap-from-usd">≈ $—</div>
+      </div>
+    </div>
+    <div class="swap-divider">
+      <div class="swap-flip-btn" onclick="flipSwap()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+      </div>
+    </div>
+    <div class="swap-box" style="margin-top:8px;">
+      <div class="swap-token-card" style="border-radius:6px 6px 18px 18px;">
+        <div class="swap-label">You Receive</div>
+        <div class="swap-token-row">
+          <div class="swap-token-pill">
+            <img id="swap-to-img" src="https://assets.coingecko.com/coins/images/325/thumb/Tether.png" onerror="this.style.display='none'">
+            <span id="swap-to-sym">USDT</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="swap-amount-input" id="swap-to-val" style="pointer-events:none;">—</div>
+        </div>
+        <div class="swap-usd-val" id="swap-to-usd">≈ $—</div>
+      </div>
+    </div>
+    <div class="swap-info" style="margin-top:14px;">
+      <div class="swap-info-row"><span class="key">Exchange Rate</span><span class="val" id="swap-rate">—</span></div>
+      <div class="swap-info-row"><span class="key">Network Fee</span><span class="val green">Zero (AERO)</span></div>
+      <div class="swap-info-row"><span class="key">Slippage</span><span class="val">0.5%</span></div>
+      <div class="swap-info-row"><span class="key">Est. Time</span><span class="val">~3 seconds</span></div>
+    </div>
+    <div style="padding:0 24px 24px;">
+      <button class="btn-primary" onclick="processSwap()">Confirm Swap →</button>
+    </div>
+  </div>
 
-        // ===== SPLASH SCREEN =====
-        (function() {
-            const splash = document.getElementById('splash-screen');
-            let startY = 0, isDragging = false, currentY = 0;
+  <!-- ══════════ CHART / ASSET DETAIL ══════════ -->
+  <div class="screen" id="screen-chart">
+    <div class="chart-header">
+      <div class="back-btn" onclick="showScreen('screen-market')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div style="background:var(--pill-bg);border-radius:10px;padding:8px 12px;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="asset-hero">
+      <div class="asset-hero-row">
+        <img class="asset-hero-img" id="detail-img" src="" onerror="this.style.display='none'">
+        <div>
+          <div class="asset-hero-name" id="detail-name">Bitcoin</div>
+          <div class="asset-hero-sym" id="detail-sym">BTC</div>
+        </div>
+      </div>
+      <div class="asset-price-big" id="detail-price">$—</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <span class="crypto-change" id="detail-change">—</span>
+        <span style="font-size:13px;color:var(--text-muted);">24h</span>
+      </div>
+    </div>
+    <div style="padding:0 24px;">
+      <div class="chart-period-row">
+        <div class="period-pill active" onclick="setPeriod(this,'1')">1D</div>
+        <div class="period-pill" onclick="setPeriod(this,'7')">7D</div>
+        <div class="period-pill" onclick="setPeriod(this,'30')">1M</div>
+        <div class="period-pill" onclick="setPeriod(this,'90')">3M</div>
+        <div class="period-pill" onclick="setPeriod(this,'365')">1Y</div>
+      </div>
+    </div>
+    <div id="chart-container">
+      <canvas id="price-chart" height="160"></canvas>
+    </div>
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-label">Market Cap</div><div class="stat-val" id="stat-cap">—</div></div>
+      <div class="stat-card"><div class="stat-label">24h Volume</div><div class="stat-val" id="stat-vol">—</div></div>
+      <div class="stat-card"><div class="stat-label">24h High</div><div class="stat-val" id="stat-high">—</div></div>
+      <div class="stat-card"><div class="stat-label">24h Low</div><div class="stat-val" id="stat-low">—</div></div>
+    </div>
+    <div style="padding:0 24px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <button class="btn-primary" onclick="showScreen('screen-send')">Buy / Send</button>
+      <button style="background:var(--pill-bg);color:var(--blue);border:none;border-radius:16px;padding:18px;font-size:16px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;" onclick="showScreen('screen-swap')">Swap</button>
+    </div>
+  </div>
 
-            function dismissSplash() {
-                splash.classList.add('dismissing');
-                setTimeout(() => { splash.style.display = 'none'; }, 580);
-            }
-            window.dismissSplash = dismissSplash;
+  <!-- ══════════ FUND / DEMO ══════════ -->
+  <div class="screen" id="screen-fund">
+    <div class="screen-header">
+      <div class="back-btn" onclick="showScreen('screen-home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <span class="screen-title">Demo Funds</span>
+    </div>
+    <div style="padding:0 24px 16px;font-size:13px;color:var(--text-muted);">Add demo funds to explore the app. No real money involved.</div>
+    <div class="fund-cards-row">
+      <div class="fund-demo-card" onclick="addDemoFunds(100)">
+        <div class="fund-card-label">Starter Pack</div>
+        <div class="fund-card-amount">$100</div>
+        <div class="fund-card-sub">+ 0.001 BTC demo</div>
+      </div>
+      <div class="fund-demo-card" style="background:linear-gradient(135deg,#1a4060,#0ea5e9);" onclick="addDemoFunds(500)">
+        <div class="fund-card-label">Explorer Pack</div>
+        <div class="fund-card-amount">$500</div>
+        <div class="fund-card-sub">+ 0.005 BTC + 2 ETH</div>
+      </div>
+      <div class="fund-demo-card" style="background:linear-gradient(135deg,#2d1a80,#7c3aed);" onclick="addDemoFunds(2000)">
+        <div class="fund-card-label">Pro Pack</div>
+        <div class="fund-card-amount">$2,000</div>
+        <div class="fund-card-sub">Full portfolio demo</div>
+      </div>
+    </div>
+    <div class="section-label" style="margin-top:8px;">
+      <h3>Transaction History</h3>
+    </div>
+    <div class="fund-history" id="tx-history">
+      <div class="tx-item"><div class="tx-type-icon recv"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg></div><div class="tx-desc"><div class="tx-desc-title">Demo Fund Added</div><div class="tx-desc-date">Today, 9:41 AM</div></div><div class="tx-amount pos">+$100.00</div></div>
+      <div class="tx-item"><div class="tx-type-icon sent"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div class="tx-desc"><div class="tx-desc-title">Sent to @marco.aero</div><div class="tx-desc-date">Yesterday, 3:22 PM</div></div><div class="tx-amount neg">-0.002 BTC</div></div>
+      <div class="tx-item"><div class="tx-type-icon recv"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg></div><div class="tx-desc"><div class="tx-desc-title">Received from @priya.eth</div><div class="tx-desc-date">May 8, 11:10 AM</div></div><div class="tx-amount pos">+1.5 ETH</div></div>
+      <div class="tx-item"><div class="tx-type-icon sent"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div><div class="tx-desc"><div class="tx-desc-title">Swapped ETH → USDT</div><div class="tx-desc-date">May 7, 6:45 PM</div></div><div class="tx-amount neg">-0.5 ETH</div></div>
+    </div>
+  </div>
 
-            // Touch swipe up to dismiss
-            splash.addEventListener('touchstart', e => {
-                startY = e.touches[0].clientY;
-                isDragging = true;
-            }, { passive: true });
+  <!-- ══════════ SUCCESS ══════════ -->
+  <div class="screen" id="screen-success">
+    <div class="result-screen">
+      <div class="result-icon success">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="result-title">Transfer Complete!</div>
+      <div class="result-sub">Your transaction was processed instantly with zero fees on the AERO network.</div>
+      <div class="tx-receipt">
+        <div class="tx-row"><span class="tx-key">Status</span><span class="tx-val green">✓ Confirmed</span></div>
+        <div class="tx-row"><span class="tx-key">Amount</span><span class="tx-val" id="receipt-amount">—</span></div>
+        <div class="tx-row"><span class="tx-key">To</span><span class="tx-val" id="receipt-to">—</span></div>
+        <div class="tx-row"><span class="tx-key">Network Fee</span><span class="tx-val green">$0.00 (Zero)</span></div>
+        <div class="tx-row"><span class="tx-key">TX Hash</span><span class="tx-val" style="font-size:11px;font-family:monospace;" id="receipt-hash">—</span></div>
+        <div class="tx-row"><span class="tx-key">Time</span><span class="tx-val" id="receipt-time">—</span></div>
+      </div>
+      <button class="btn-primary" onclick="showScreen('screen-home')">Back to Home</button>
+    </div>
+  </div>
 
-            splash.addEventListener('touchmove', e => {
-                if (!isDragging) return;
-                const dy = e.touches[0].clientY - startY;
-                if (dy < 0) {
-                    currentY = dy;
-                    splash.style.transform = `translateY(${dy}px)`;
-                    splash.style.opacity = `${1 + dy / 300}`;
-                }
-            }, { passive: true });
+  <!-- ══════════ FAILED ══════════ -->
+  <div class="screen" id="screen-failed">
+    <div class="result-screen">
+      <div class="result-icon failed">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="result-title">Transaction Failed</div>
+      <div class="result-sub">Something went wrong. Please check the recipient address and try again.</div>
+      <div class="tx-receipt">
+        <div class="tx-row"><span class="tx-key">Status</span><span class="tx-val red">✗ Failed</span></div>
+        <div class="tx-row"><span class="tx-key">Reason</span><span class="tx-val red">Invalid address</span></div>
+        <div class="tx-row"><span class="tx-key">Network Fee</span><span class="tx-val green">$0.00 (Refunded)</span></div>
+      </div>
+      <button class="btn-primary" onclick="showScreen('screen-send')">Try Again</button>
+      <br><br>
+      <button class="btn-ghost" style="background:var(--pill-bg);color:var(--blue);border-color:var(--border);width:100%;" onclick="showScreen('screen-home')">Go Home</button>
+    </div>
+  </div>
 
-            splash.addEventListener('touchend', () => {
-                isDragging = false;
-                if (currentY < -80) {
-                    dismissSplash();
-                } else {
-                    splash.style.transform = '';
-                    splash.style.opacity = '';
-                }
-                currentY = 0;
-            });
-        })();
+  <!-- ══════════ ACCOUNT ══════════ -->
+  <div class="screen" id="screen-account">
+    <div class="account-hero">
+      <div class="account-avatar-big">🦁</div>
+      <div class="account-name">Alex Johnson</div>
+      <div class="account-id">aero:0x3F9a...dB12</div>
+      <div class="account-badges">
+        <span class="badge verified">✓ Verified</span>
+        <span class="badge kyc">KYC Done</span>
+      </div>
+    </div>
+    <div class="account-menu">
+      <div class="menu-section-title">Wallet</div>
+      <div class="menu-item"><div class="menu-icon" style="background:#E8F5E9;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Payment Cards</div><div class="menu-item-sub">MECOZX OLED Card linked</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="menu-item"><div class="menu-icon" style="background:#FFF3E0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Security</div><div class="menu-item-sub">2FA enabled</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="menu-item"><div class="menu-icon" style="background:#E3F2FD;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Backup Phrase</div><div class="menu-item-sub">12 seed words secured</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="menu-section-title">Preferences</div>
+      <div class="menu-item"><div class="menu-icon" style="background:var(--pill-bg);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Notifications</div><div class="menu-item-sub">All alerts on</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="menu-item"><div class="menu-icon" style="background:#FCE4EC;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e91e63" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Referrals</div><div class="menu-item-sub">Invite friends, earn AERO</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+      <div class="menu-item" onclick="showScreen('screen-onboard')"><div class="menu-icon" style="background:#FFEBEE;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Sign Out</div><div class="menu-item-sub">See you again!</div></div></div>
+    </div>
+  </div>
 
-        window.onload = () => {
-            if (localStorage.getItem('vault_encrypted_data')) {
-                document.getElementById('setup-screen').classList.add('hidden');
-                document.getElementById('unlock-screen').classList.remove('hidden');
-            }
-            loadProfile();
-        };
+  <!-- ══════════ NAVBAR ══════════ -->
+  <nav class="navbar" id="main-nav">
+    <div class="nav-item active" id="nav-home" onclick="navTo('screen-home','nav-home')">
+      <div class="nav-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" id="nav-market" onclick="navTo('screen-market','nav-market')">
+      <div class="nav-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7A99" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <span class="nav-label">Market</span>
+    </div>
+    <div class="nav-fab" onclick="showScreen('screen-send')">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </div>
+    <div class="nav-item" id="nav-swap" onclick="navTo('screen-swap','nav-swap')">
+      <div class="nav-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7A99" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+      </div>
+      <span class="nav-label">Swap</span>
+    </div>
+    <div class="nav-item" id="nav-account" onclick="navTo('screen-account','nav-account')">
+      <div class="nav-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7A99" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span class="nav-label">Account</span>
+    </div>
+  </nav>
+</div>
 
-        function unlockWallet() {
-            const pass = document.getElementById('unlock-pass').value;
-            if(!pass) return;
-            const encryptedData = localStorage.getItem('vault_encrypted_data');
-            try {
-                const bytes = CryptoJS.AES.decrypt(encryptedData, pass);
-                const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
-                if(!decryptedKey) throw new Error();
-                setupWallet(new ethers.Wallet(decryptedKey, provider));
-            } catch(e) { alert("Invalid Password"); }
-        }
+<script>
+// ─── State ───
+let currentScreen = 'screen-onboard';
+let cryptoData = [];
+let selectedAssetId = 'bitcoin';
+let sendAmount = '';
+let sendAssets = [{id:'bitcoin',sym:'BTC'},{id:'ethereum',sym:'ETH'},{id:'tether',sym:'USDT'},{id:'solana',sym:'SOL'}];
+let sendAssetIdx = 0;
+let chartCanvas, chartCtx;
+let currentChartCoin = 'bitcoin';
+let currentChartDays = '1';
 
-        function promptForPassword(privateKey) {
-            keyToEncrypt = privateKey;
-            document.getElementById('import-overlay').style.display = 'none';
-            document.getElementById('seed-overlay').style.display = 'none';
-            document.getElementById('set-password-overlay').style.display = 'flex';
-        }
+// ─── Clock ───
+function updateClock(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.getHours()+':'+(now.getMinutes()+'').padStart(2,'0');
+}
+updateClock(); setInterval(updateClock, 10000);
 
-        function confirmPassword() {
-            const pass = document.getElementById('new-pass').value;
-            if(!pass) return;
-            const encryptedStr = CryptoJS.AES.encrypt(keyToEncrypt, pass).toString();
-            localStorage.setItem('vault_encrypted_data', encryptedStr);
-            setupWallet(new ethers.Wallet(keyToEncrypt, provider));
-            document.getElementById('set-password-overlay').style.display = 'none';
-        }
+// ─── Screen Nav ───
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentScreen = id;
+  const noNav = ['screen-onboard','screen-create','screen-success','screen-failed'];
+  document.getElementById('main-nav').style.display = noNav.includes(id) ? 'none' : 'flex';
+  if(id === 'screen-market' && cryptoData.length) renderMarket(cryptoData);
+  if(id === 'screen-home' && cryptoData.length) renderHome(cryptoData);
+}
+function navTo(screen, navId){
+  showScreen(screen);
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.remove('active');
+    n.querySelector('svg').setAttribute('stroke','#6B7A99');
+  });
+  const nav = document.getElementById(navId);
+  if(nav){ nav.classList.add('active'); nav.querySelector('svg').setAttribute('stroke','white'); }
+}
+function selectAvatar(el){ document.querySelectorAll('.avatar-opt').forEach(a=>a.classList.remove('selected')); el.classList.add('selected'); }
 
-        function cancelPassword() { document.getElementById('set-password-overlay').style.display = 'none'; }
+// ─── CoinGecko fetch ───
+async function fetchCoins(){
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true&price_change_percentage=24h');
+    const data = await r.json();
+    if(Array.isArray(data)){ cryptoData = data; renderHome(data); renderMarket(data); updateSwapData(); }
+  } catch(e){ renderFallback(); }
+}
 
-        function logoutWallet() {
-            if(confirm("Erase all data on this device? Ensure you have your phrase!")) {
-                localStorage.removeItem('vault_encrypted_data');
-                location.reload(); 
-            }
-        }
+function fmt(n){
+  if(!n && n!==0) return '—';
+  if(n >= 1e12) return '$'+(n/1e12).toFixed(2)+'T';
+  if(n >= 1e9) return '$'+(n/1e9).toFixed(2)+'B';
+  if(n >= 1e6) return '$'+(n/1e6).toFixed(2)+'M';
+  if(n >= 1) return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '$'+n.toFixed(6);
+}
 
-        function generateWallet() {
-            pendingWallet = ethers.Wallet.createRandom();
-            const grid = document.getElementById('seed-grid-container');
-            grid.innerHTML = "";
-            pendingWallet.mnemonic.phrase.split(' ').forEach((word, i) => {
-                grid.innerHTML += `<div class="seed-word"><span class="seed-num">${i + 1}</span> ${word}</div>`;
-            });
-            document.getElementById('seed-overlay').style.display = 'flex';
-        }
+function coinImg(coin){
+  return `<img class="crypto-img" src="${coin.image}" alt="${coin.symbol}" onerror="this.outerHTML='<div class=\\'coin-fallback\\'>${(coin.symbol||'').toUpperCase().slice(0,3)}</div>'">`;
+}
 
-        function copySeedPhrase() {
-            navigator.clipboard.writeText(pendingWallet.mnemonic.phrase);
-            document.getElementById('copy-seed-btn').innerText = "Copied!";
-        }
+function sparklineSVG(prices, positive){
+  if(!prices||!prices.length) return '';
+  const w=60,h=30;
+  const mn=Math.min(...prices), mx=Math.max(...prices), rng=mx-mn||1;
+  const pts = prices.map((v,i)=>`${(i/(prices.length-1))*w},${h-((v-mn)/rng*h*0.85+h*0.08)}`).join(' ');
+  const col = positive ? '#22c55e' : '#ef4444';
+  return `<svg class="mini-chart" viewBox="0 0 60 30"><polyline fill="none" stroke="${col}" stroke-width="1.8" points="${pts}"/></svg>`;
+}
 
-        function confirmSeedSaved() { promptForPassword(pendingWallet.privateKey); }
-        function openImport() { document.getElementById('import-overlay').style.display = 'flex'; }
-        function closeImport() { document.getElementById('import-overlay').style.display = 'none'; }
+function renderHome(data){
+  const list = document.getElementById('home-crypto-list');
+  const top5 = data.slice(0,5);
+  list.innerHTML = top5.map(c => {
+    const pos = c.price_change_percentage_24h >= 0;
+    return `<div class="crypto-card" onclick="openDetail('${c.id}')">
+      ${coinImg(c)}
+      <div class="crypto-info"><div class="crypto-name">${c.name}</div><div class="crypto-sym">${c.symbol.toUpperCase()}</div></div>
+      ${sparklineSVG(c.sparkline_in_7d?.price, pos)}
+      <div class="crypto-right">
+        <div class="crypto-price">${fmt(c.current_price)}</div>
+        <div class="crypto-change ${pos?'pos':'neg'}">${pos?'+':''}${c.price_change_percentage_24h?.toFixed(2)||'0.00'}%</div>
+      </div>
+    </div>`;
+  }).join('');
+  // Demo balance
+  const total = 2435.78;
+  document.getElementById('home-balance').textContent = '$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 
-        function confirmImport() {
-            try {
-                const imported = ethers.Wallet.fromPhrase(document.getElementById('import-phrase').value.trim());
-                promptForPassword(imported.privateKey);
-            } catch(e) { alert("Invalid Phrase"); }
-        }
+function renderMarket(data){
+  const list = document.getElementById('market-list');
+  list.innerHTML = data.map((c,i) => {
+    const pos = c.price_change_percentage_24h >= 0;
+    return `<div class="market-row" onclick="openDetail('${c.id}')">
+      <div class="market-rank">${i+1}</div>
+      ${coinImg(c)}
+      <div class="crypto-info"><div class="crypto-name">${c.name}</div><div class="crypto-sym market-cap">${fmt(c.market_cap)}</div></div>
+      ${sparklineSVG(c.sparkline_in_7d?.price, pos)}
+      <div class="crypto-right">
+        <div class="crypto-price">${fmt(c.current_price)}</div>
+        <div class="crypto-change ${pos?'pos':'neg'}">${pos?'+':''}${c.price_change_percentage_24h?.toFixed(2)||'0.00'}%</div>
+      </div>
+    </div>`;
+  }).join('');
+  const totalCap = data.reduce((a,c)=>a+(c.market_cap||0),0);
+  document.getElementById('market-cap-label').textContent = 'Total cap (top 20): '+fmt(totalCap);
+}
 
-        function setupWallet(w) {
-            wallet = w.connect(provider);
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('unlock-screen').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            document.getElementById('nav-group').style.display = 'flex';
-            document.getElementById('logout-btn').classList.remove('hidden');
-            document.getElementById('bottom-nav').style.display = 'flex';
-            document.getElementById('wallet-addr-short').innerText = wallet.address.slice(0,6) + "..." + wallet.address.slice(-4);
-            document.getElementById('full-addr').innerText = wallet.address;
-            updateBalance(); fetchMarket();
-        }
+function filterMarket(q){
+  const filtered = cryptoData.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.symbol.toLowerCase().includes(q.toLowerCase()));
+  const list = document.getElementById('market-list');
+  list.innerHTML = filtered.map((c,i) => {
+    const pos = c.price_change_percentage_24h >= 0;
+    return `<div class="market-row" onclick="openDetail('${c.id}')">
+      <div class="market-rank">${i+1}</div>
+      ${coinImg(c)}
+      <div class="crypto-info"><div class="crypto-name">${c.name}</div><div class="crypto-sym market-cap">${fmt(c.market_cap)}</div></div>
+      ${sparklineSVG(c.sparkline_in_7d?.price, pos)}
+      <div class="crypto-right">
+        <div class="crypto-price">${fmt(c.current_price)}</div>
+        <div class="crypto-change ${pos?'pos':'neg'}">${pos?'+':''}${c.price_change_percentage_24h?.toFixed(2)||'0.00'}%</div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-        async function updateBalance() {
-            const b = await provider.getBalance(wallet.address);
-            document.getElementById('eth-balance').innerText = parseFloat(ethers.formatEther(b)).toFixed(4) + " ETH";
-        }
+function renderFallback(){
+  const coins = [
+    {name:'Bitcoin',symbol:'BTC',price:67234,change:2.4},
+    {name:'Ethereum',symbol:'ETH',price:3521,change:-0.8},
+    {name:'Solana',symbol:'SOL',price:178,change:5.2},
+    {name:'Tether',symbol:'USDT',price:1.00,change:0.01},
+    {name:'BNB',symbol:'BNB',price:601,change:1.3}
+  ];
+  const list = document.getElementById('home-crypto-list');
+  list.innerHTML = coins.map(c => `<div class="crypto-card">
+    <div class="coin-fallback">${c.symbol.slice(0,3)}</div>
+    <div class="crypto-info"><div class="crypto-name">${c.name}</div><div class="crypto-sym">${c.symbol}</div></div>
+    <div class="crypto-right">
+      <div class="crypto-price">${fmt(c.price)}</div>
+      <div class="crypto-change ${c.change>=0?'pos':'neg'}">${c.change>=0?'+':''}${c.change}%</div>
+    </div>
+  </div>`).join('');
+  document.getElementById('home-balance').textContent = '$2,435.78';
+}
 
-        // ===== RECEIVE SHEET WITH ANIMATION =====
-        function openReceive() {
-            const overlay = document.getElementById('deposit-overlay');
-            overlay.style.display = 'flex';
-            document.getElementById('qr-container').innerHTML = "";
-            new QRCode(document.getElementById('qr-container'), { text: wallet.address, width: 180, height: 180 });
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    overlay.classList.add('open');
-                });
-            });
-        }
+// ─── Detail Chart ───
+async function openDetail(id){
+  currentChartCoin = id;
+  const coin = cryptoData.find(c=>c.id===id);
+  if(coin){
+    document.getElementById('detail-img').src = coin.image;
+    document.getElementById('detail-name').textContent = coin.name;
+    document.getElementById('detail-sym').textContent = coin.symbol.toUpperCase();
+    document.getElementById('detail-price').textContent = fmt(coin.current_price);
+    const pos = coin.price_change_percentage_24h >= 0;
+    const chEl = document.getElementById('detail-change');
+    chEl.textContent = (pos?'+':'')+coin.price_change_percentage_24h?.toFixed(2)+'%';
+    chEl.className = 'crypto-change '+(pos?'pos':'neg');
+    document.getElementById('stat-cap').textContent = fmt(coin.market_cap);
+    document.getElementById('stat-vol').textContent = fmt(coin.total_volume);
+    document.getElementById('stat-high').textContent = fmt(coin.high_24h);
+    document.getElementById('stat-low').textContent = fmt(coin.low_24h);
+  }
+  showScreen('screen-chart');
+  loadChart(id, currentChartDays);
+}
 
-        function closeReceive() {
-            const overlay = document.getElementById('deposit-overlay');
-            overlay.classList.remove('open');
-            setTimeout(() => { overlay.style.display = 'none'; }, 450);
-        }
+async function loadChart(id, days){
+  try {
+    const r = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=${days}`);
+    const d = await r.json();
+    if(d.prices) drawChart(d.prices.map(p=>p[1]));
+  } catch(e){
+    // Draw dummy
+    const dummy = Array.from({length:48},(_,i)=> 60000 + Math.sin(i/4)*3000 + Math.random()*1000);
+    drawChart(dummy);
+  }
+}
 
-        function handleReceiveBackdropClick(e) {
-            if (e.target === e.currentTarget || e.target.classList.contains('receive-backdrop')) {
-                closeReceive();
-            }
-        }
+function drawChart(prices){
+  const container = document.getElementById('chart-container');
+  const w = container.clientWidth - 32;
+  const h = 160;
+  const canvas = document.getElementById('price-chart');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  const mn = Math.min(...prices), mx = Math.max(...prices), rng = mx-mn||1;
+  const xs = prices.map((_,i)=> i/(prices.length-1)*w);
+  const ys = prices.map(v=> h - ((v-mn)/rng*(h*0.8) + h*0.1));
+  // gradient fill
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(59,110,248,0.25)');
+  grad.addColorStop(1,'rgba(59,110,248,0)');
+  ctx.beginPath();
+  ctx.moveTo(xs[0],h);
+  xs.forEach((x,i)=> ctx.lineTo(x,ys[i]));
+  ctx.lineTo(xs[xs.length-1],h);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  // line
+  ctx.beginPath();
+  ctx.moveTo(xs[0],ys[0]);
+  xs.forEach((x,i)=> ctx.lineTo(x,ys[i]));
+  ctx.strokeStyle = '#3B6EF8';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  // dot at end
+  const lx = xs[xs.length-1], ly = ys[ys.length-1];
+  ctx.beginPath(); ctx.arc(lx,ly,5,0,Math.PI*2);
+  ctx.fillStyle = '#3B6EF8'; ctx.fill();
+  ctx.beginPath(); ctx.arc(lx,ly,9,0,Math.PI*2);
+  ctx.fillStyle = 'rgba(59,110,248,0.2)'; ctx.fill();
+}
 
-        // Legacy alias for any other references
-        function showDeposit() { openReceive(); }
-        function closeDeposit() { closeReceive(); }
+function setPeriod(el, days){
+  document.querySelectorAll('.period-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  currentChartDays = days;
+  loadChart(currentChartCoin, days);
+}
 
-        async function fetchMarket() {
-            const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana,binancecoin&order=market_cap_desc&sparkline=true');
-            const data = await r.json();
-            const list = document.getElementById('market-list');
-            list.innerHTML = "";
-            data.forEach(coin => {
-                const div = document.createElement('div');
-                div.className = "market-item";
-                div.onclick = () => showChart(coin);
-                div.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <img src="${coin.image}" class="coin-img">
-                        <div><div style="font-weight:600">${coin.name}</div><div style="font-size:11px; color:#999">${coin.symbol.toUpperCase()}</div></div>
-                    </div>
-                    <div class="coin-price">
-                        <div style="font-weight:600">$${coin.current_price.toLocaleString()}</div>
-                        <div class="price-up" style="color:${coin.price_change_percentage_24h >= 0 ? '#10B981' : '#EF4444'}">${coin.price_change_percentage_24h.toFixed(2)}%</div>
-                    </div>`;
-                list.appendChild(div);
-            });
-        }
+// ─── Numpad ───
+function buildNumpad(){
+  const keys = ['1','2','3','4','5','6','7','8','9','.','0','⌫'];
+  const pad = document.getElementById('numpad');
+  pad.innerHTML = keys.map((k,i) => `<button class="num-key${k==='⌫'?' action':''}" onclick="numPress('${k}')">${k}</button>`).join('');
+}
+function numPress(k){
+  if(k==='⌫'){ sendAmount = sendAmount.slice(0,-1)||''; }
+  else if(k==='.' && sendAmount.includes('.')) return;
+  else { if(sendAmount.length >= 10) return; sendAmount += k; }
+  const disp = sendAmount || '0';
+  document.getElementById('send-amount').textContent = disp;
+  // approx USD
+  const asset = sendAssets[sendAssetIdx];
+  const coin = cryptoData.find(c=>c.id===asset.id);
+  const price = coin?.current_price || 1;
+  const usd = (parseFloat(disp)||0) * price;
+  document.getElementById('send-usd').textContent = '≈ '+fmt(usd);
+}
+function cycleSendAsset(){
+  sendAssetIdx = (sendAssetIdx+1)%sendAssets.length;
+  const a = sendAssets[sendAssetIdx];
+  document.getElementById('send-asset-sym').textContent = a.sym;
+  const coin = cryptoData.find(c=>c.id===a.id);
+  if(coin) document.getElementById('send-asset-img').src = coin.image;
+  numPress('');
+}
+function processSend(){
+  const addr = document.getElementById('send-addr').value.trim();
+  if(!addr || !sendAmount || parseFloat(sendAmount)<=0){
+    // show failed for demo
+    showScreen('screen-failed');
+    return;
+  }
+  const hash = '0x'+Math.random().toString(16).slice(2,12)+'...'+Math.random().toString(16).slice(2,6);
+  document.getElementById('receipt-amount').textContent = sendAmount + ' ' + sendAssets[sendAssetIdx].sym;
+  document.getElementById('receipt-to').textContent = addr;
+  document.getElementById('receipt-hash').textContent = hash;
+  document.getElementById('receipt-time').textContent = new Date().toLocaleTimeString();
+  showScreen('screen-success');
+}
 
-        function showChart(coin) {
-            document.getElementById('chart-overlay').style.display = 'flex';
-            document.getElementById('chart-coin-name').innerText = coin.name;
-            document.getElementById('chart-coin-img').src = coin.image;
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            if(chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: coin.sparkline_in_7d.price.map((_, i) => i),
-                    datasets: [{
-                        data: coin.sparkline_in_7d.price,
-                        borderColor: '#6366F1', borderWidth: 3, pointRadius: 0, fill: true,
-                        backgroundColor: 'rgba(99, 102, 241, 0.05)', tension: 0.4
-                    }]
-                },
-                options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-            });
-        }
-        function closeChart() { document.getElementById('chart-overlay').style.display = 'none'; }
+// ─── Swap ───
+function updateSwapData(){
+  const from = cryptoData.find(c=>c.symbol==='btc');
+  const to = cryptoData.find(c=>c.symbol==='usdt');
+  if(!from||!to) return;
+  const val = parseFloat(document.getElementById('swap-from-val').value)||0;
+  const received = val * (from.current_price / to.current_price);
+  document.getElementById('swap-to-val').textContent = received.toFixed(2);
+  document.getElementById('swap-from-usd').textContent = '≈ '+fmt(val*from.current_price);
+  document.getElementById('swap-to-usd').textContent = '≈ '+fmt(received*to.current_price);
+  document.getElementById('swap-rate').textContent = `1 BTC = ${from.current_price?.toLocaleString()} USDT`;
+}
+function updateSwapRate(){ updateSwapData(); }
+function flipSwap(){
+  const fromSym = document.getElementById('swap-from-sym').textContent;
+  const fromImg = document.getElementById('swap-from-img').src;
+  const toSym = document.getElementById('swap-to-sym').textContent;
+  const toImg = document.getElementById('swap-to-img').src;
+  document.getElementById('swap-from-sym').textContent = toSym;
+  document.getElementById('swap-from-img').src = toImg;
+  document.getElementById('swap-to-sym').textContent = fromSym;
+  document.getElementById('swap-to-img').src = fromImg;
+  updateSwapData();
+}
+function processSwap(){
+  document.getElementById('receipt-amount').textContent = document.getElementById('swap-from-val').value + ' ' + document.getElementById('swap-from-sym').textContent;
+  document.getElementById('receipt-to').textContent = document.getElementById('swap-to-val').textContent + ' ' + document.getElementById('swap-to-sym').textContent;
+  document.getElementById('receipt-hash').textContent = '0x'+Math.random().toString(16).slice(2,14)+'...';
+  document.getElementById('receipt-time').textContent = new Date().toLocaleTimeString();
+  showScreen('screen-success');
+}
 
-        function showDashboard() { 
-            document.querySelectorAll('.segment')[0].classList.add('active');
-            document.querySelectorAll('.segment')[1].classList.remove('active');
-            document.getElementById('market-list').style.display = 'none';
-            document.querySelector('.balance-card').style.display = 'block';
-        }
-        function showMarket() { 
-            document.querySelectorAll('.segment')[1].classList.add('active');
-            document.querySelectorAll('.segment')[0].classList.remove('active');
-            document.querySelector('.balance-card').style.display = 'none';
-            document.getElementById('market-list').style.display = 'block';
-        }
+// ─── Demo Fund ───
+function addDemoFunds(amount){
+  const history = document.getElementById('tx-history');
+  const newEntry = `<div class="tx-item" style="animation:fadeIn .3s ease;">
+    <div class="tx-type-icon recv"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg></div>
+    <div class="tx-desc"><div class="tx-desc-title">Demo Fund Added</div><div class="tx-desc-date">Just now</div></div>
+    <div class="tx-amount pos">+$${amount.toLocaleString()}</div>
+  </div>`;
+  history.insertAdjacentHTML('afterbegin', newEntry);
+}
 
-        // ===== BOTTOM NAV =====
-        function setActiveNav(id) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        // ===== SEND SHEET =====
-        function openSendSheet() {
-            setActiveNav('nav-send');
-            const sheet = document.getElementById('send-sheet');
-            sheet.style.display = 'flex';
-            requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
-        }
-        function closeSendSheet() {
-            const sheet = document.getElementById('send-sheet');
-            sheet.classList.remove('open');
-            setTimeout(() => { sheet.style.display = 'none'; }, 450);
-        }
-        function selectCoin(el) {
-            document.querySelectorAll('.coin-chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-        function confirmSend() {
-            const amount = document.getElementById('send-amount').value;
-            const to = document.getElementById('send-to').value;
-            const coin = document.querySelector('.coin-chip.selected')?.dataset.coin;
-            if (!amount || !to) { alert('Please fill in all fields'); return; }
-            alert(`Send ${amount} ${coin} to ${to} — feature coming soon!`);
-            closeSendSheet();
-        }
-
-        // ===== SETTINGS POPUP =====
-        function openSettings() {
-            setActiveNav('nav-settings');
-            const popup = document.getElementById('settings-popup');
-            popup.style.display = 'flex';
-            requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.add('open')));
-        }
-        function closeSettings() {
-            const popup = document.getElementById('settings-popup');
-            popup.classList.remove('open');
-            setTimeout(() => { popup.style.display = 'none'; }, 350);
-        }
-
-        // ===== CARD POPUP =====
-        function openCardPopup() {
-            setActiveNav('nav-card');
-            const popup = document.getElementById('card-popup');
-            popup.style.display = 'flex';
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                popup.style.background = 'rgba(8,8,20,0.92)';
-                const scene = document.getElementById('card-scene');
-                scene.style.transform = 'scale(1) translateY(0)';
-                scene.style.opacity = '1';
-            }));
-            initCardTilt();
-        }
-
-        function closeCardPopup() {
-            const popup = document.getElementById('card-popup');
-            popup.style.background = 'rgba(8,8,20,0)';
-            const scene = document.getElementById('card-scene');
-            scene.style.transform = 'scale(0.75) translateY(60px)';
-            scene.style.opacity = '0';
-            setTimeout(() => { 
-                popup.style.display = 'none';
-                scene.style.transition = 'none';
-                scene.style.transform = 'scale(0.7) translateY(60px)';
-                scene.style.opacity = '0';
-                requestAnimationFrame(() => {
-                    scene.style.transition = 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease';
-                });
-            }, 400);
-        }
-
-        function initCardTilt() {
-            const wrap = document.getElementById('card-tilt-wrap');
-            const shine = document.getElementById('card-shine');
-            let isDown = false, startX, startY, currentRX = 0, currentRY = 0;
-
-            function applyTilt(rx, ry) {
-                wrap.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg)`;
-                wrap.style.boxShadow = `${-ry*1.5}px ${rx*1.5 + 20}px 60px rgba(0,0,0,0.5)`;
-                shine.style.opacity = '1';
-                shine.style.background = `radial-gradient(circle at ${50 + ry*2}% ${50 - rx*2}%, rgba(255,255,255,0.25) 0%, transparent 65%)`;
-            }
-
-            function resetTilt() {
-                wrap.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
-                wrap.style.boxShadow = '0 30px 80px rgba(0,0,0,0.5)';
-                shine.style.opacity = '0';
-                currentRX = 0; currentRY = 0;
-            }
-
-            // Mouse
-            wrap.addEventListener('mousemove', e => {
-                const r = wrap.getBoundingClientRect();
-                const x = (e.clientX - r.left) / r.width - 0.5;
-                const y = (e.clientY - r.top) / r.height - 0.5;
-                applyTilt(-y * 18, x * 18);
-            });
-            wrap.addEventListener('mouseleave', resetTilt);
-
-            // Touch
-            wrap.addEventListener('touchstart', e => {
-                isDown = true;
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-            }, { passive: true });
-            wrap.addEventListener('touchmove', e => {
-                if (!isDown) return;
-                e.stopPropagation();
-                const r = wrap.getBoundingClientRect();
-                const x = (e.touches[0].clientX - r.left) / r.width - 0.5;
-                const y = (e.touches[0].clientY - r.top) / r.height - 0.5;
-                applyTilt(-y * 20, x * 20);
-            }, { passive: true });
-            wrap.addEventListener('touchend', () => { isDown = false; resetTilt(); });
-        }
-
-        // Update card name from profile
-        function syncCardName() {
-            const p = JSON.parse(localStorage.getItem('aero_profile') || '{}');
-            const el = document.getElementById('card-fallback-name');
-            if (el && p.name) el.innerText = p.name.toUpperCase();
-        }
-
-        // ===== PROFILE =====
-        function openProfile() {
-            setActiveNav('nav-profile');
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('profile-view').style.display = 'flex';
-            document.getElementById('nav-group').style.display = 'none';
-            loadProfile();
-        }
-
-        function closeProfileView() {
-            document.getElementById('profile-view').style.display = 'none';
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            document.getElementById('nav-group').style.display = 'flex';
-            setActiveNav('nav-send');
-        }
-
-        function loadProfile() {
-            syncCardName();
-            const p = JSON.parse(localStorage.getItem('aero_profile') || '{}');
-            if (p.name) document.getElementById('pf-name').value = p.name;
-            if (p.username) document.getElementById('pf-username').value = p.username;
-            if (p.mobile) document.getElementById('pf-mobile').value = p.mobile;
-            if (p.email) document.getElementById('pf-email').value = p.email;
-            updateProfileDisplay(p);
-            if (p.avatarData) {
-                const av = document.getElementById('profile-avatar-display');
-                av.innerHTML = `<img src="${p.avatarData}" alt="avatar">`;
-            }
-        }
-
-        function updateProfileDisplay(p) {
-            const name = p.name || 'Your Name';
-            const handle = p.username ? (p.username.startsWith('@') ? p.username : '@' + p.username) : '@username';
-            document.getElementById('profile-display-name').innerText = name;
-            document.getElementById('profile-display-handle').innerText = handle;
-            const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) || '?';
-            const el = document.getElementById('profile-avatar-initials');
-            if (el) el.innerText = initials;
-        }
-
-        function saveProfile() {
-            const p = {
-                name: document.getElementById('pf-name').value,
-                username: document.getElementById('pf-username').value,
-                mobile: document.getElementById('pf-mobile').value,
-                email: document.getElementById('pf-email').value,
-            };
-            const existing = JSON.parse(localStorage.getItem('aero_profile') || '{}');
-            if (existing.avatarData) p.avatarData = existing.avatarData;
-            localStorage.setItem('aero_profile', JSON.stringify(p));
-            updateProfileDisplay(p);
-            const btn = document.querySelector('.btn-save');
-            btn.innerText = 'Saved!';
-            setTimeout(() => { btn.innerText = 'Save Profile'; }, 1800);
-        }
-
-        function triggerAvatarUpload() {
-            document.getElementById('avatar-file-input').click();
-        }
-
-        function handleAvatarChange(input) {
-            if (!input.files || !input.files[0]) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = e.target.result;
-                const av = document.getElementById('profile-avatar-display');
-                av.innerHTML = `<img src="${data}" alt="avatar">`;
-                document.getElementById('profile-avatar-initials') && (document.getElementById('profile-avatar-initials').style.display = 'none');
-                const p = JSON.parse(localStorage.getItem('aero_profile') || '{}');
-                p.avatarData = data;
-                localStorage.setItem('aero_profile', JSON.stringify(p));
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    </script>
-    
-    
+// ─── Init ───
+buildNumpad();
+fetchCoins();
+// update swap coins every 30s
+setInterval(()=>{ if(cryptoData.length) updateSwapData(); }, 30000);
+</script>
 </body>
 </html>
