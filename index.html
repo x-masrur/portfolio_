@@ -23,18 +23,67 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Space Grotesk', sans-serif;
-    background: #C8D5F8;
+    background: var(--bg);
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
     min-height: 100vh;
-    padding: 20px;
+    padding: 0;
+    margin: 0;
   }
 
+  /* PHONE SHELL - REMOVED FOR FULLSCREEN */
+  .phone {
+    width: 100%;
+    height: 100vh;
+    background: var(--bg);
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: none;
+  }
+  .notch {
+    display: none;
+  }
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 28px 0; font-size: 12px; font-weight: 600; color: var(--text-muted);
+    position: relative; z-index: 50;
+  }
+  .status-bar .time { color: var(--text); font-weight: 700; }
+
   /* SCREENS */
-  .screen { display: none; position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: var(--nav-h); }
+  .screen { display: none; position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 0; }
   .screen.active { display: block; animation: fadeIn .25s ease; }
+  .screen { top: 0; left: 0; right: 0; bottom: var(--nav-h); }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* DEMO MODAL */
+  .demo-modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 9999;
+  }
+  .demo-modal-content {
+    background: var(--card); border-radius: 24px; padding: 32px 24px;
+    max-width: 90%; width: 100%; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .demo-modal-close {
+    position: absolute; top: 16px; right: 16px; width: 36px; height: 36px;
+    background: var(--pill-bg); border: none; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--text);
+  }
+  .demo-modal-title { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+  .demo-modal-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .demo-pdf-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .demo-pdf-btn {
+    flex: 1; min-width: 140px; background: var(--pill-bg); color: var(--blue);
+    border: 2px solid var(--border); border-radius: 14px; padding: 12px 16px;
+    cursor: pointer; font-weight: 600; text-align: center; transition: all .2s;
+  }
+  .demo-pdf-btn:hover { background: var(--blue); color: white; border-color: var(--blue); }
+  .demo-modal-actions { display: flex; gap: 12px; }
+  .demo-modal-actions button { flex: 1; }
 
   /* ── ONBOARDING ── */
   #screen-onboard { background: linear-gradient(160deg, #1A2F80 0%, #0D1B3E 50%, #0A1230 100%); padding-bottom: 0; }
@@ -45,7 +94,7 @@
   }
   .onboard-content { position: relative; z-index: 2; padding: 80px 32px 0; }
   .onboard-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 60px; }
-  .onboard-logo img { width: 40px; height: 40px; object-fit: contain; }
+  .onboard-logo img { width: 80px; height: 20px; object-fit: contain; }
   .onboard-logo .wordmark { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 3px; }
   .onboard-tagline { font-size: 38px; font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 16px; }
   .onboard-tagline span { color: var(--blue-light); }
@@ -96,8 +145,13 @@
   .avatar-opt {
     width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid var(--border);
     display: flex; align-items: center; justify-content: center; cursor: pointer;
-    font-size: 22px; background: var(--card); transition: border-color .2s;
+    font-size: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: border-color .2s; color: white; font-weight: 600;
   }
+  .avatar-opt:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+  .avatar-opt:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+  .avatar-opt:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+  .avatar-opt:nth-child(5) { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
   .avatar-opt.selected { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,110,248,0.2); }
   .terms { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; }
   .terms span { color: var(--blue); cursor: pointer; }
@@ -117,9 +171,9 @@
   .home-greeting { font-size: 16px; color: rgba(255,255,255,0.7); }
   .home-name { font-size: 20px; font-weight: 700; color: #fff; }
   .home-avatar {
-    width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.15);
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-    border: 2px solid rgba(255,255,255,0.3); cursor: pointer;
+    width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    border: 2px solid rgba(255,255,255,0.3); cursor: pointer; color: white; font-weight: 600;
   }
   .balance-label { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
   .balance-amount { font-size: 40px; font-weight: 700; color: #fff; margin-bottom: 4px; }
@@ -311,7 +365,7 @@
   /* ── ACCOUNT ── */
   #screen-account { background: var(--bg); }
   .account-hero { background: linear-gradient(160deg, #1A3080 0%, #2451D6 100%); padding: 60px 24px 36px; text-align: center; }
-  .account-avatar-big { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.15); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 36px; border: 3px solid rgba(255,255,255,0.3); }
+  .account-avatar-big { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 3px solid rgba(255,255,255,0.3); color: white; font-weight: 600; }
   .account-name { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
   .account-id { font-size: 13px; color: rgba(255,255,255,0.55); font-family: 'Space Grotesk', monospace; }
   .account-badges { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
@@ -395,14 +449,6 @@
 
 <div class="phone">
   <div class="notch"></div>
-  <div class="status-bar">
-    <span class="time" id="clock">9:41</span>
-    <span style="display:flex;gap:6px;align-items:center;">
-      <svg width="16" height="12" fill="none"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity=".4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity=".6"/><rect x="9" y="0" width="3" height="12" rx="1" fill="currentColor"/><rect x="13.5" y="1" width="2.5" height="11" rx="1" fill="currentColor" opacity=".3"/></svg>
-      <svg width="16" height="12" viewBox="0 0 24 16" fill="none"><path d="M12 4C8.67 4 5.67 5.33 3.5 7.5L0 4C3.11 1.48 7.38 0 12 0s8.89 1.48 12 4l-3.5 3.5C18.33 5.33 15.33 4 12 4z" fill="currentColor" opacity=".4"/><path d="M12 8c-2.21 0-4.21.9-5.67 2.33L3 7c2.2-2.2 5.24-3.56 8.98-3.56 3.74 0 6.78 1.36 8.98 3.56l-3.33 3.33A7.97 7.97 0 0012 8z" fill="currentColor" opacity=".6"/><circle cx="12" cy="14" r="2" fill="currentColor"/></svg>
-      <span style="font-size:12px;font-weight:700;">100%</span>
-    </span>
-  </div>
 
   <!-- ══════════ ONBOARD ══════════ -->
   <div class="screen active" id="screen-onboard">
@@ -410,9 +456,8 @@
     <div class="onboard-content">
       <div class="onboard-logo">
         <img src="logo.png" alt="AERO" onerror="this.style.display='none';this.nextElementSibling.textContent='AERO'">
-        <span class="wordmark">AERO</span>
       </div>
-      <div class="onboard-tagline">Zero-Cost<br>Global <span>Crypto</span><br>Transfers.</div>
+      <div class="onboard-tagline">Zero-Cost<br>Global <span>Money</span><br>Transfers.</div>
       <div class="onboard-sub">Send money across borders instantly with zero fees — powered by MECOZX blockchain.</div>
       <div class="globe-wrap">
         <svg class="globe-svg" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -471,7 +516,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Full Name</label>
-        <input class="form-input" type="text" placeholder="Masrur Ahmmed" value="">
+        <input class="form-input" id="create-name" type="text" placeholder="Masrur Ahmmed" value="">
       </div>
       <div class="form-group">
         <label class="form-label">Email Address</label>
@@ -490,7 +535,7 @@
         <input class="form-input" type="text" placeholder="Bangladesh" value="">
       </div>
       <div class="terms">By creating an account you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>. AERO wallets are non-custodial — you control your keys.</div>
-      <button class="btn-primary" style="margin-bottom:32px;" onclick="showScreen('screen-home')">
+      <button class="btn-primary" style="margin-bottom:32px;" onclick="createWallet()">
         Create Wallet →
       </button>
     </div>
@@ -499,13 +544,13 @@
   <!-- ══════════ HOME ══════════ -->
   <div class="screen" id="screen-home">
     <div class="home-top">
-      <div class="home-top-inner">
-        <div class="home-greeting-row">
-          <div>
-            <div class="home-greeting">Hey,</div>
-            <div class="home-name">Masrur Ahmmed 👋</div>
-          </div>
-          <div class="home-avatar" onclick="showScreen('screen-account')">🔥</div>
+    <div class="home-top-inner">
+      <div class="home-greeting-row">
+        <div>
+          <div class="home-greeting">Welcome back,</div>
+          <div class="home-name" id="home-user-name">User</div>
+        </div>
+          <div class="home-avatar" id="home-avatar" onclick="showScreen('screen-account')">👤</div>
         </div>
         <div class="balance-label">Total Portfolio</div>
         <div class="balance-amount" id="home-balance">$—</div>
@@ -660,9 +705,9 @@
             <span id="swap-to-sym">USDT</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
-          <div class="swap-amount-input" id="swap-to-val" style="pointer-events:none;">—</div>
+          <div style="flex: 1; text-align: right;"><span id="swap-to-val" style="font-size: 24px; font-weight: 700; color: var(--text);">0.00</span></div>
         </div>
-        <div class="swap-usd-val" id="swap-to-usd">≈ $—</div>
+        <div class="swap-usd-val" id="swap-to-usd">≈ $0.00</div>
       </div>
     </div>
     <div class="swap-info" style="margin-top:14px;">
@@ -805,8 +850,8 @@
   <!-- ══════════ ACCOUNT ══════════ -->
   <div class="screen" id="screen-account">
     <div class="account-hero">
-      <div class="account-avatar-big">🦁</div>
-      <div class="account-name">Alex Johnson</div>
+      <div class="account-avatar-big" id="account-avatar">👤</div>
+      <div class="account-name" id="account-display-name">User</div>
       <div class="account-id">aero:0x3F9a...dB12</div>
       <div class="account-badges">
         <span class="badge verified">✓ Verified</span>
@@ -822,6 +867,26 @@
       <div class="menu-item"><div class="menu-icon" style="background:var(--pill-bg);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B6EF8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Notifications</div><div class="menu-item-sub">All alerts on</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
       <div class="menu-item"><div class="menu-icon" style="background:#FCE4EC;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e91e63" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Referrals</div><div class="menu-item-sub">Invite friends, earn AERO</div></div><svg class="chevron" width="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
       <div class="menu-item" onclick="showScreen('screen-onboard')"><div class="menu-icon" style="background:#FFEBEE;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="menu-item-text"><div class="menu-item-label">Sign Out</div><div class="menu-item-sub">See you again!</div></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ DEMO MODAL ══════════ -->
+  <div class="demo-modal" id="demo-modal" style="display:none;">
+    <div class="demo-modal-content" style="position:relative;">
+      <button class="demo-modal-close" onclick="closeDemoModal()">×</button>
+      <div class="demo-modal-title">⚠️ Demo Version Notice</div>
+      <div class="demo-modal-desc">
+        Welcome to AERO! This is a demo version and does not represent the final quality of the application. Features and UI may change significantly in production.
+        <br><br>
+        Please review our whitepaper to understand the full vision and roadmap.
+      </div>
+      <div class="demo-pdf-row">
+        <button class="demo-pdf-btn" onclick="downloadPDF('whitepaper')">📄 Whitepaper</button>
+        <button class="demo-pdf-btn" onclick="downloadPDF('roadmap')">📋 Roadmap</button>
+      </div>
+      <div class="demo-modal-actions">
+        <button class="btn-primary" onclick="closeDemoModal()" style="flex:1;">Continue</button>
+      </div>
     </div>
   </div>
 
@@ -868,6 +933,8 @@ let sendAssetIdx = 0;
 let chartCanvas, chartCtx;
 let currentChartCoin = 'bitcoin';
 let currentChartDays = '1';
+let userName = 'User';
+let selectedAvatar = '👤';
 
 // ─── Clock ───
 function updateClock(){
@@ -875,6 +942,21 @@ function updateClock(){
   document.getElementById('clock').textContent = now.getHours()+':'+(now.getMinutes()+'').padStart(2,'0');
 }
 updateClock(); setInterval(updateClock, 10000);
+
+// ─── Demo Modal ───
+function showDemoModal(){
+  document.getElementById('demo-modal').style.display = 'flex';
+}
+function closeDemoModal(){
+  document.getElementById('demo-modal').style.display = 'none';
+  // Auto proceed to home after demo notice
+  setTimeout(() => { showScreen('screen-home'); }, 300);
+}
+function downloadPDF(type){
+  const pdfUrl = type === 'whitepaper' ? '#' : '#';
+  console.log('Download PDF:', type);
+  alert('PDF download feature coming soon!');
+}
 
 // ─── Screen Nav ───
 function showScreen(id){
@@ -895,7 +977,25 @@ function navTo(screen, navId){
   const nav = document.getElementById(navId);
   if(nav){ nav.classList.add('active'); nav.querySelector('svg').setAttribute('stroke','white'); }
 }
-function selectAvatar(el){ document.querySelectorAll('.avatar-opt').forEach(a=>a.classList.remove('selected')); el.classList.add('selected'); }
+function selectAvatar(el){ 
+  document.querySelectorAll('.avatar-opt').forEach(a=>a.classList.remove('selected')); 
+  el.classList.add('selected');
+  selectedAvatar = el.textContent;
+}
+
+function createWallet(){
+  const nameInput = document.getElementById('create-name').value.trim();
+  if(nameInput){
+    userName = nameInput;
+    // Update displays
+    document.getElementById('home-user-name').textContent = userName.split(' ')[0];
+    document.getElementById('account-display-name').textContent = userName;
+    document.getElementById('home-avatar').textContent = selectedAvatar;
+    document.getElementById('account-avatar').textContent = selectedAvatar;
+  }
+  // Show demo modal before proceeding
+  showDemoModal();
+}
 
 // ─── CoinGecko fetch ───
 async function fetchCoins(){
@@ -1133,10 +1233,11 @@ function updateSwapData(){
   if(!from||!to) return;
   const val = parseFloat(document.getElementById('swap-from-val').value)||0;
   const received = val * (from.current_price / to.current_price);
-  document.getElementById('swap-to-val').textContent = received.toFixed(2);
+  const toValEl = document.getElementById('swap-to-val');
+  toValEl.textContent = received.toFixed(2);
   document.getElementById('swap-from-usd').textContent = '≈ '+fmt(val*from.current_price);
   document.getElementById('swap-to-usd').textContent = '≈ '+fmt(received*to.current_price);
-  document.getElementById('swap-rate').textContent = `1 BTC = ${from.current_price?.toLocaleString()} USDT`;
+  document.getElementById('swap-rate').textContent = `1 BTC = ${(from.current_price/to.current_price).toFixed(2)} USDT`;
 }
 function updateSwapRate(){ updateSwapData(); }
 function flipSwap(){
@@ -1172,6 +1273,8 @@ function addDemoFunds(amount){
 // ─── Init ───
 buildNumpad();
 fetchCoins();
+// Show onboarding on first load
+showScreen('screen-onboard');
 // update swap coins every 30s
 setInterval(()=>{ if(cryptoData.length) updateSwapData(); }, 30000);
 </script>
