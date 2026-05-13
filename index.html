@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="ilogo.png">
+    <link rel="icon" type="image/png" href="fav.png">
     
     <!-- GSAP for smooth animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -275,6 +275,125 @@
     filter: grayscale(0);
 }
 
+.gravity-section {
+    padding: 140px 20px;
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.gravity-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.pill {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.4rem, 6vw, 2.5rem);
+    padding: 15px 35px;
+    border-radius: 24px;
+    letter-spacing: -1.5px;
+    opacity: 0; /* Hidden by default */
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.03);
+    user-select: none;
+}
+
+.pill span { margin-right: 12px; font-size: 0.9em; }
+
+/* Exact Color Logic */
+.p-blue   { background: #e0f2fe; color: #0284c7; }
+.p-lime   { background: #f7fee7; color: #65a30d; }
+.p-green  { background: #f0fdf4; color: #16a34a; }
+.p-orange { background: #fff7ed; color: #ea580c; }
+.p-purple { background: #faf5ff; color: #9333ea; }
+
+.bottom-nav-container {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    filter: url('#goo'); /* Applies the liquid connection effect */
+}
+
+.liquid-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Small gap that the filter "fills" with liquid */
+}
+
+.nav-blob {
+    background: #111111; /* Dark theme as per image */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.icon-blob {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+}
+
+.icon-blob svg {
+    width: 24px;
+    height: 24px;
+    opacity: 0.9;
+}
+
+.menu-blob {
+    padding: 0 25px;
+    height: 54px;
+    border-radius: 30px;
+    gap: 15px;
+}
+
+.menu-blob a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.menu-blob a:hover {
+    color: white;
+}
+
+.divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255,255,255,0.15);
+}
+
+.cta-blob {
+    padding: 0 25px;
+    height: 54px;
+    border-radius: 30px;
+}
+
+.cta-blob a {
+    color: white;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .menu-blob { display: none; } /* Hide middle links on small screens to save space */
+    .bottom-nav-container { bottom: 20px; }
+}
+
 
     </style>
 </head>
@@ -377,6 +496,16 @@
 </section>
 
 
+<section id="gravity-zone" class="gravity-section">
+    <div class="gravity-container">
+        <div class="pill p-blue"><span>✦</span> branding</div>
+        <div class="pill p-lime"><span>🌐</span> website</div>
+        <div class="pill p-green"><span>🎯</span> interface</div>
+        <div class="pill p-orange"><span>✒️</span> illustration</div>
+        <div class="pill p-purple"><span>⚡</span> animation</div>
+    </div>
+</section>
+
     
     
 
@@ -405,50 +534,171 @@
         </div>
     </section>
 
+    
+    
+    <nav class="bottom-nav-container">
+    <div class="liquid-wrapper">
+        <div class="nav-blob icon-blob">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+        </div>
+
+        <div class="nav-blob menu-blob">
+            <a href="#projects">Security</a>
+            <div class="divider"></div>
+            <a href="#stack">Products</a>
+            <div class="divider"></div>
+            <a href="#contact">Support</a>
+        </div>
+
+        <div class="nav-blob cta-blob">
+            <a href="#">Download App</a>
+        </div>
+    </div>
+</nav>
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="display:none;">
+    <defs>
+        <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+        </filter>
+    </defs>
+</svg>
+
+
     <footer style="padding: 60px; text-align: center; color: var(--secondary); font-size: 0.8rem;">
-        <p>&copy; 2026 Masrur Global.</p>
+        <p>&copy; .</p>
     </footer>
 
     <script>
-        gsap.registerPlugin(ScrollTrigger);
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Register Plugins
+    gsap.registerPlugin(ScrollTrigger);
 
-        // Entrance Animations
-        gsap.from(".reveal-hero", {
-            y: 50, opacity: 0, duration: 1.4, stagger: 0.2, ease: "power4.out"
+    // 2. Prep the Pills (Set their starting state)
+    gsap.set(".pill", { 
+        y: -800, 
+        opacity: 0, 
+        rotation: () => Math.random() * 40 - 20 
+    });
+
+    // 3. Create the Timeline
+    const gravityTL = gsap.timeline({
+        scrollTrigger: {
+            trigger: "#gravity-zone",
+            start: "top 75%",    // Starts when section is 75% visible
+            toggleActions: "play none none none"
+        }
+    });
+
+    // 4. Add the falling action to the timeline
+    gravityTL.to(".pill", {
+        y: 0,
+        opacity: 1,
+        rotation: (i) => [ -2, 3, -4, 2, -1 ][i] || 0, // Natural resting tilts
+        duration: 1.2,
+        stagger: 0.15,
+        ease: "bounce.out"
+    });
+
+    // --- RE-INTEGRATING YOUR OTHER ANIMATIONS ---
+    
+    // Hero Entrance
+    gsap.from(".reveal-hero", {
+        y: 50, opacity: 0, duration: 1, stagger: 0.2, ease: "power3.out"
+    });
+
+    // General Reveal (Projects, etc)
+    gsap.utils.toArray(".reveal").forEach(el => {
+        gsap.from(el, {
+            scrollTrigger: { trigger: el, start: "top 90%" },
+            y: 30, opacity: 0, duration: 0.8
         });
+    });
 
-        gsap.utils.toArray(".reveal").forEach(el => {
-            gsap.from(el, {
-                scrollTrigger: { trigger: el, start: "top 90%" },
-                y: 40, opacity: 0, duration: 1, ease: "power3.out"
-            });
-        });
-
-        // Floating Animations for Social Badges
-        gsap.to(".float-anim", {
-            y: -10,
-            duration: 2,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut"
-        });
-
-        gsap.to(".float-anim-delayed", {
-            y: 8,
-            duration: 2.5,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: 0.5
-        });
-
-        // Subtle Card Tilt Effect
-        const card = document.querySelector('.liquid-card');
+    // Liquid Card Tilt (Only if element exists)
+    const card = document.querySelector('.liquid-card');
+    if(card) {
         document.addEventListener('mousemove', (e) => {
-            const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
-            const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
-            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            const x = (window.innerWidth / 2 - e.pageX) / 45;
+            const y = (window.innerHeight / 2 - e.pageY) / 45;
+            card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
         });
-    </script>
+    }
+});
+</script>
+<script>
+    // Entrance animation for the Bottom Nav
+gsap.from(".bottom-nav-container", {
+    y: 100,
+    opacity: 0,
+    duration: 1.2,
+    delay: 1, // Appears shortly after the hero
+    ease: "power4.out"
+});
+
+// Subtle hover effect for the blobs
+document.querySelectorAll('.nav-blob').forEach(blob => {
+    blob.addEventListener('mouseenter', () => {
+        gsap.to(blob, { scale: 1.05, duration: 0.3 });
+    });
+    blob.addEventListener('mouseleave', () => {
+        gsap.to(blob, { scale: 1, duration: 0.3 });
+    });
+});
+
+</script>
+<script>
+    const trigger = document.getElementById('chatTrigger');
+const container = document.getElementById('chatContainer');
+const closeBtn = document.getElementById('closeChat');
+const chatBody = document.getElementById('chatBody');
+
+// Toggle Chat Window with GSAP
+trigger.addEventListener('click', () => {
+    container.style.display = 'flex';
+    gsap.fromTo(container, 
+        { scale: 0.8, opacity: 0, y: 20 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.7)" }
+    );
+    trigger.style.display = 'none';
+});
+
+closeBtn.addEventListener('click', () => {
+    gsap.to(container, { 
+        scale: 0.8, opacity: 0, y: 20, duration: 0.3, 
+        onComplete: () => {
+            container.style.display = 'none';
+            trigger.style.display = 'flex';
+        }
+    });
+});
+
+// Function to handle preset message clicks
+function sendPreset(text) {
+    const userMsg = document.createElement('div');
+    userMsg.className = 'message-bubble';
+    userMsg.style.cssText = "background: #3b82f6; color: white; align-self: flex-end; border-radius: 18px 18px 4px 18px; margin-top: 10px;";
+    userMsg.innerHTML = `${text} <span class="time" style="color: white; opacity: 0.7">${new Date().getHours()}:${new Date().getMinutes()}</span>`;
+    
+    chatBody.appendChild(userMsg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    // Optional: Trigger a fake "typing" response from the agent
+    setTimeout(() => {
+        const response = document.createElement('div');
+        response.className = 'message-bubble agent';
+        response.style.alignSelf = "flex-start";
+        response.innerHTML = `Thanks! I'll get back to you shortly regarding "${text}".`;
+        chatBody.appendChild(response);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }, 1000);
+}
+
+</script>
 </body>
 </html>
