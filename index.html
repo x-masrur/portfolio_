@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masrur | Portfolio</title>
+    
+    <!-- Modern Typography: Space Grotesk is used as requested -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="ilogo.png">
+    
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #64748b;
+            --accent: #2563eb; 
+            --bg: #fdfdff;
+            --card-bg: #ffffff;
+            --glass: rgba(255, 255, 255, 0.7);
+            --pin-orange: #ff7e5f;
+            --pin-blue: #3b82f6;
+            --pin-purple: #a855f7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif; /* Space Grotesk is the user's preferred font */
+            background-color: var(--bg);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--primary);
+            overflow-x: hidden;
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            padding: 120px 5% 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3.5rem, 12vw, 7rem);
+            line-height: 0.85;
+            font-weight: 700;
+            letter-spacing: -3px;
+            margin-bottom: 40px;
+        }
+
+        .profile-stack {
+            position: relative;
+            width: 150px; height: 150px;
+            margin: 0 auto;
+        }
+
+        .profile-img {
+            width: 100%; height: 100%;
+            border-radius: 35% 65% 61% 39% / 30% 32% 68% 70%; /* Organic shape */
+            border: 6px solid white;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+            background: #f1f5f9;
+        }
+
+        /* --- Projects Path --- */
+        .project-path-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 100px 20px;
+            position: relative;
+        }
+
+        .project-path-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            width: 2px; height: 100%;
+            background: repeating-linear-gradient(to bottom, transparent, transparent 10px, #e2e8f0 10px, #e2e8f0 20px);
+            z-index: 0;
+        }
+
+        .pinned-card {
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+            margin-bottom: 80px;
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .pinned-card:nth-child(even) { margin-left: auto; }
+
+        .pin {
+            position: absolute;
+            top: -12px; left: 50%;
+            transform: translateX(-50%);
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        }
+
+        /* --- RE-FIXED Contact Card (Marina Style) --- */
+        .contact-section {
+            padding: 100px 5%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .liquid-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 60px 40px;
+            border-radius: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 
+                0 40px 100px rgba(0,0,0,0.05),
+                inset 0 0 20px rgba(255,255,255,0.5);
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Decorative "Floating" Social Badges */
+        .floating-social {
+            position: absolute;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.06);
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--primary);
+        }
+
+        .fs-1 { top: -20px; left: -30px; border: 1px solid #fee2e2; }
+        .fs-2 { bottom: 20px; right: -40px; border: 1px solid #e0f2fe; }
+
+        .contact-label {
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .liquid-card h2 {
+            font-size: 2.5rem;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 25px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .lottie-iframe { border: none; pointer-events: none; margin-bottom: 20px; }
+        
+        
+        
+.mini-stack-section {
+    padding: 40px 5%; /* Tightened padding */
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.mini-label {
+    text-transform: uppercase;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    color: #2563eb;
+    margin-bottom: 20px;
+    display: block;
+    opacity: 0.6;
+}
+
+.mini-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px; /* Smaller gaps */
+    justify-content: center;
+}
+
+.mini-card {
+    background: white;
+    width: 62px;  /* Compact size like Marina's UI elements */
+    height: 62px;
+    border-radius: 15px; /* Softer corners for smaller size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.mini-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid var(--border-color); /* The colored border from 1000101275.png */
+    border-radius: 15px;
+    opacity: 0.15;
+    transition: opacity 0.3s ease;
+}
+
+.mini-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.mini-card:hover::after {
+    opacity: 1;
+}
+
+.mini-card img {
+    width: 28px; /* Small, sharp icons */
+    height: 28px;
+    object-fit: contain;
+    z-index: 1;
+    filter: grayscale(1); /* Optional: makes it look more premium, colors show on hover */
+    transition: filter 0.3s ease;
+}
+
+.mini-card:hover img {
+    filter: grayscale(0);
+}
+
+
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <div class="rating-badge reveal-hero">
+            <span>Verified Innovator</span>
+            <div style="display: flex; margin-left: 5px;">
+                <img src="ellie.png" style="border-radius: 50%; border: 2px solid white; height: 35px; width: 35px; margin-left: -8px;">
+                <img src="l2.jpg" style="border-radius: 50%; border: 2px solid #e0e0e0; height: 35px; width: 35px; margin-left: -8px;">
+            </div>
+        </div>
+
+        <h1 class="reveal-hero">Design<br>Systems.</h1>
+
+        <div class="profile-stack reveal-hero">
+            <img src="ilogo.png" alt="Masrur" class="profile-img">
+            <div style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: white; padding: 6px 18px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                MASRUR
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects (Pinned Card Layout) -->
+    <div class="project-path-container">
+        <div class="pinned-card reveal">
+            <div class="pin" style="background: var(--pin-orange);"></div>
+            <p style="font-weight: 700; color: var(--pin-orange); font-size: 0.75rem; margin-bottom: 5px;">PROJECT 01</p>
+            <h3>mecozx</h3>
+            <p>A blockchain and AI company focused on biometric payment hardware and high-end software solutions.</p>
+        </div>
+
+        <div class="pinned-card reveal">
+            <div class="pin" style="background: var(--pin-blue);"></div>
+            <p style="font-weight: 700; color: var(--pin-blue); font-size: 0.75rem; margin-bottom: 5px;">PROJECT 02</p>
+            <h3>AERO Wallet</h3>
+            <p>A premium finance ecosystem featuring production-ready security for zero-cost blockchain transactions.</p>
+        </div>
+
+        <div class="pinned-card reveal">
+            <div class="pin" style="background: var(--pin-purple);"></div>
+            <p style="font-weight: 700; color: var(--pin-purple); font-size: 0.75rem; margin-bottom: 5px;">PROJECT 03</p>
+            <h3>Growup 2.0</h3>
+            <p>An LMS platform teaching UI/UX and web development to students in Bangladesh.</p>
+        </div>
+    </div>
+    
+    
+<section class="mini-stack-section">
+    <div class="stack-header">
+        <span class="mini-label">Technical Arsenal</span>
+    </div>
+    
+    <div class="mini-grid">
+        <!-- HTML -->
+        <div class="mini-card reveal" style="--border-color: #f06529;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML">
+        </div>
+        <!-- CSS -->
+        <div class="mini-card reveal" style="--border-color: #2965f1;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS">
+        </div>
+        <!-- JS -->
+        <div class="mini-card reveal" style="--border-color: #f7df1e;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
+        </div>
+        <!-- TS -->
+        <div class="mini-card reveal" style="--border-color: #3178c6;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" alt="TS">
+        </div>
+        <!-- Python -->
+        <div class="mini-card reveal" style="--border-color: #3776ab;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python">
+        </div>
+        <!-- Next.js -->
+        <div class="mini-card reveal" style="--border-color: #000000;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" alt="Next">
+        </div>
+        <!-- Tailwind -->
+        <div class="mini-card reveal" style="--border-color: #06b6d4;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg" alt="Tailwind">
+        </div>
+        <!-- Firebase -->
+        <div class="mini-card reveal" style="--border-color: #ffca28;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" alt="Firebase">
+        </div>
+        <!-- Figma -->
+        <div class="mini-card reveal" style="--border-color: #f24e1e;">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" alt="Figma">
+        </div>
+        <!-- Ethers -->
+        <div class="mini-card reveal" style="--border-color: #3c3c3d;">
+            <img src="https://miro.medium.com/v2/resize:fit:1358/format:webp/0*IQxtovIkGXiSWzVg.png" alt="Ethers">
+        <!-- Web3 -->
+       <!-- <div class="mini-card reveal" style="--border-color: #3c3c3d;">
+            <img src="https://png.pngtree.com/png-vector/20250324/ourmid/pngtree-blockchain-web3-logo-vector-png-image_15850717.png" alt="Web3"> -->
+        </div>
+    </div>
+</section>
+
+
+    
+    
+
+    <!-- Redesigned Contact Section -->
+    <section class="contact-section">
+        <div class="liquid-card reveal">
+            <!-- Floating Elements -->
+            <a href="https://github.com" class="floating-social fs-1 float-anim">
+                <span style="color: #6366f1;">GitHub</span>
+            </a>
+            <a href="#" class="floating-social fs-2 float-anim-delayed">
+                <span style="color: #0ea5e9;">LinkedIn</span>
+            </a>
+
+            <span class="contact-label">Get in Touch</span>
+            
+            <!-- Specific Lottie Iframe requested by User -->
+            <iframe src="https://lottie.host/embed/0fe0be05-556f-4a97-8cec-d79af9412d7b/8nTmgVIOQd.lottie" class="lottie-iframe" style="width:80px; height:80px;"></iframe>
+            
+            <h2>Let's build the future.</h2>
+            <p style="color: var(--secondary); font-size: 0.9rem; line-height: 1.6;">
+                Currently based in Bangladesh. Open for technical collaborations on mecozx and AERO.
+            </p>
+            
+            <a href="mailto:masrurxyz@outlook.com" class="cta-button">Send a Message</a>
+        </div>
+    </section>
+
+    <footer style="padding: 60px; text-align: center; color: var(--secondary); font-size: 0.8rem;">
+        <p>&copy; 2026 Masrur Global.</p>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Entrance Animations
+        gsap.from(".reveal-hero", {
+            y: 50, opacity: 0, duration: 1.4, stagger: 0.2, ease: "power4.out"
+        });
+
+        gsap.utils.toArray(".reveal").forEach(el => {
+            gsap.from(el, {
+                scrollTrigger: { trigger: el, start: "top 90%" },
+                y: 40, opacity: 0, duration: 1, ease: "power3.out"
+            });
+        });
+
+        // Floating Animations for Social Badges
+        gsap.to(".float-anim", {
+            y: -10,
+            duration: 2,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+
+        gsap.to(".float-anim-delayed", {
+            y: 8,
+            duration: 2.5,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: 0.5
+        });
+
+        // Subtle Card Tilt Effect
+        const card = document.querySelector('.liquid-card');
+        document.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 50;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 50;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+    </script>
+</body>
+</html>
