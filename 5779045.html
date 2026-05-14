@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AERO Wallet</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #070707;
+      --bg2: #0d0d0d;
+      --card: rgba(20, 20, 20, 0.92);
+      --card2: rgba(255, 255, 255, 0.06);
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #f5f5f5;
+      --muted: rgba(245,245,245,.65);
+      --muted2: rgba(245,245,245,.45);
+      --accent: #b48cff;
+      --accent2: #e0d1ff;
+      --green: #55f1a6;
+      --red: #ff7c7c;
+      --shadow: 0 22px 60px rgba(0,0,0,.5);
+      --radius: 24px;
+      --nohover: rgba(255,255,255,.06);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(180,140,255,.15), transparent 26%),
+        radial-gradient(circle at 80% 0%, rgba(255,255,255,.07), transparent 20%),
+        linear-gradient(180deg, #050505, #090909 45%, #050505);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      outline: none;
+    }
+    button, .clickable, .pill, .token-row, .icon-btn, .action-btn {
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+    }
+    button:hover, .clickable:hover, .pill:hover, .token-row:hover, .icon-btn:hover, .action-btn:hover {
+      background-color: var(--nohover) !important;
+      border-color: rgba(255,255,255,.12);
+    }
+    button:active, .clickable:active, .pill:active, .token-row:active, .icon-btn:active, .action-btn:active {
+      transform: scale(.985);
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 18px 14px 24px;
+      position: relative;
+    }
+
+    .statusbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 4px 18px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: .02em;
+    }
+    .status-icons i { margin-left: 10px; }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.97);
+      color: #0b0b0b;
+      font-weight: 700;
+      box-shadow: 0 10px 28px rgba(0,0,0,.2);
+      user-select: none;
+    }
+    .user-pill i { font-size: .95rem; }
+
+    .gear {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+    }
+
+    .title {
+      font-size: clamp(3.4rem, 16vw, 4.9rem);
+      line-height: .9;
+      letter-spacing: -0.06em;
+      margin: 16px 0 18px;
+      font-weight: 700;
+    }
+
+    .hero-card {
+      position: relative;
+      border-radius: 30px;
+      overflow: hidden;
+      min-height: 280px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(circle at 10% 25%, rgba(255,255,255,.26), transparent 12%),
+        radial-gradient(circle at 90% 18%, rgba(255,255,255,.2), transparent 10%),
+        linear-gradient(90deg, rgba(198,171,255,.96), rgba(231,224,255,.97));
+      color: #050505;
+      margin-bottom: 14px;
+    }
+
+    .hero-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: .48;
+      background-image:
+        radial-gradient(circle at center, rgba(255,255,255,.7) 1px, transparent 1.7px),
+        linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,.08) 1px, transparent 1px);
+      background-size: 11px 11px, 52px 52px, 52px 52px;
+      mix-blend-mode: multiply;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .hero-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+    }
+
+    .chain {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    .chain img, .eth-logo, .aero-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .eth-logo {
+      border-radius: 8px;
+      background: linear-gradient(180deg, #111, #555);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 700;
+    }
+
+    .balance-wrap {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .balance {
+      font-size: clamp(2.8rem, 13vw, 4rem);
+      line-height: .95;
+      font-weight: 700;
+      letter-spacing: -.06em;
+      margin: 0;
+    }
+    .subbalance {
+      margin-top: 8px;
+      font-size: 1rem;
+      color: rgba(0,0,0,.72);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .subbalance .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #2ecc71;
+      box-shadow: 0 0 0 4px rgba(46,204,113,.14);
+    }
+    .mini-price {
+      font-size: 1rem;
+      font-weight: 700;
+      color: rgba(0,0,0,.7);
+      align-self: flex-end;
+      margin-bottom: 7px;
+    }
+
+    .wallet-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(0,0,0,.9);
+      color: #fff;
+      border-radius: 999px;
+      width: fit-content;
+      box-shadow: 0 12px 28px rgba(0,0,0,.2);
+      max-width: 100%;
+    }
+    .wallet-pill code {
+      font-size: 1rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .wallet-pill .copy-btn {
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .plus-btn {
+      width: 84px;
+      height: 84px;
+      border-radius: 28px;
+      border: 0;
+      background: rgba(0,0,0,.9);
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .notice {
+      margin: 12px 2px 0;
+      color: rgba(245,245,245,.58);
+      font-size: .93rem;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .metric {
+      border-radius: 22px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 16px;
+      min-height: 116px;
+      box-shadow: 0 12px 24px rgba(0,0,0,.18);
+    }
+    .metric h3 {
+      margin: 0 0 12px;
+      font-size: 1.45rem;
+      letter-spacing: -.04em;
+    }
+    .metric .value {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .section {
+      border-radius: 24px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 16px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.18);
+      margin-bottom: 12px;
+    }
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 1.5rem;
+      letter-spacing: -.04em;
+    }
+    .section p.sub {
+      margin: -4px 0 14px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .token-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      cursor: pointer;
+    }
+    .token-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .token-meta {
+      min-width: 0;
+    }
+    .token-meta h4 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    .token-meta small {
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+    .token-amount {
+      text-align: right;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .token-amount small {
+      display: block;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 3px;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .action-btn, .ghost-btn {
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 18px;
+      padding: 14px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary-btn {
+      border: 0;
+      background: linear-gradient(135deg, #c6abff, #f0ebff);
+      color: #090909;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-weight: 700;
+      color: rgba(255,255,255,.8);
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      padding: 14px 14px;
+      font-size: 1rem;
+    }
+    .field textarea { min-height: 120px; resize: vertical; }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .small-text { color: var(--muted); font-size: .92rem; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      width: min(100%, 430px);
+      background: #101010;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 28px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .modal-header h3 { margin: 0; font-size: 1.5rem; }
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      background: rgba(10,10,10,.95);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 999px;
+      padding: 12px 16px;
+      z-index: 60;
+      transition: .25s ease;
+      box-shadow: var(--shadow);
+      font-weight: 700;
+      max-width: calc(100vw - 24px);
+      text-align: center;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at top, rgba(180,140,255,.18), transparent 30%),
+        linear-gradient(180deg, #050505, #0a0a0a);
+    }
+    .lock-screen.show { display: flex; }
+    .lock-card {
+      width: min(100%, 440px);
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.04);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+    .lock-card h2 { margin: 0 0 8px; font-size: 2rem; }
+    .lock-card p { margin: 0 0 16px; color: var(--muted); }
+
+    .hidden { display: none !important; }
+
+    .seed-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .chip {
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.08);
+      font-weight: 700;
+      font-size: .92rem;
+    }
+
+    .hint {
+      border-left: 3px solid rgba(180,140,255,.7);
+      padding: 10px 12px;
+      background: rgba(180,140,255,.08);
+      border-radius: 14px;
+      color: rgba(255,255,255,.84);
+      font-size: .95rem;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .footer-gap { height: 8px; }
+  </style>
+</head>
+<body>
+  <div class="lock-screen show" id="lockScreen">
+    <div class="lock-card">
+      <h2>AERO Wallet</h2>
+      <p id="lockText">Create a passcode to unlock your wallet.</p>
+      <div class="field">
+        <label for="passcodeInput">Passcode</label>
+        <input id="passcodeInput" type="password" inputmode="numeric" placeholder="Enter passcode" />
+      </div>
+      <div class="action-row">
+        <button class="action-btn primary-btn" id="unlockBtn">Unlock</button>
+        <button class="action-btn" id="clearLockBtn">Reset Local Data</button>
+      </div>
+      <p class="small-text" style="margin-top:12px;">Passcode is stored locally in this browser. Seed phrase stays on this device only.</p>
+    </div>
+  </div>
+
+  <div class="app hidden" id="app">
+
+    <div class="top-row">
+      <div class="user-pill clickable" id="usernamePill"><i class="fa-solid fa-chevron-left"></i><span id="usernameLabel">@aero</span></div>
+      <button class="gear clickable" id="settingsBtn" aria-label="settings"><i class="fa-solid fa-gear"></i></button>
+    </div>
+
+    <div class="title">AERO<br>Wallet</div>
+
+    <div class="hero-card">
+      <div class="hero-pattern"></div>
+      <div class="hero-inner">
+        <div class="hero-head">
+          <div>
+            <div class="chain"><span class="eth-logo"><i class="fa-brands fa-ethereum"></i></span><span>Ethereum</span></div>
+            <div class="balance-wrap">
+              <div>
+                <div class="balance" id="ethBalance">0.0000</div>
+                <div class="subbalance"><span class="dot"></span><span id="ethBalanceFiat">$0.00</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="mini-price" id="ethPrice">$0.00</div>
+        </div>
+
+        <div class="wallet-pill">
+          <button class="plus-btn clickable" id="addWalletBtn" title="Create / Import"><i class="fa-solid fa-plus"></i></button>
+          <code id="walletAddress">No wallet</code>
+          <button class="copy-btn clickable" id="copyAddressBtn"><i class="fa-solid fa-copy"></i> COPY</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice">
+      <i class="fa-solid fa-circle-info"></i>
+      AERO Wallet uses Alchemy for balance and price data. Add funds to Ethereum only.
+    </div>
+
+    <div class="grid">
+      <div class="metric">
+        <h3>Revenue</h3>
+        <div class="value" id="revenueValue">$0</div>
+        <div class="label">All time on AERO</div>
+      </div>
+      <div class="metric">
+        <h3>Supported</h3>
+        <div class="value" id="aeroEarned">0</div>
+        <div class="label">AERO earned</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Tokens</h2>
+      <p class="sub">Tap the AERO token to see the contract address.</p>
+      <div class="token-row clickable" id="aeroTokenRow">
+        <div class="token-left">
+          <img src="AERO.png" alt="AERO" class="aero-logo" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+          <div class="eth-logo hidden"><i class="fa-solid fa-coins"></i></div>
+          <div class="token-meta">
+            <h4>AERO</h4>
+            <small>Daily earn: 3 AERO</small>
+          </div>
+        </div>
+        <div class="token-amount">
+          <span id="aeroBalance">0</span>
+          <small id="aeroUsdValue">~$0.00</small>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="token-row clickable" id="ethTokenRow">
+        <div class="token-left">
+          <div class="eth-logo"><i class="fa-brands fa-ethereum"></i></div>
+          <div class="token-meta">
+            <h4>ETH</h4>
+            <small>Realtime price via Alchemy</small>
+          </div>
+        </div>
+        <div class="token-amount">
+          <span id="ethTokenAmount">0.0000</span>
+          <small id="ethTokenUsd">$0.00</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Earning</h2>
+      <p class="sub">Claim 3 AERO every 24 hours.</p>
+      <div class="action-row">
+        <button class="action-btn primary-btn clickable" id="claimBtn"><i class="fa-solid fa-gift"></i> Claim 3 AERO</button>
+        <button class="action-btn clickable" id="openImportBtn"><i class="fa-solid fa-wallet"></i> Import Wallet</button>
+      </div>
+      <p class="small-text" style="margin-top:10px;" id="claimStatus">Next claim: unavailable</p>
+    </div>
+
+    <div class="section">
+      <h2>Send ETH</h2>
+      <p class="sub">This uses the connected wallet and Alchemy RPC.</p>
+      <div class="field">
+        <label for="sendTo">Recipient</label>
+        <input id="sendTo" type="text" placeholder="0x..." />
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1; min-width: 140px;">
+          <label for="sendAmount">Amount (ETH)</label>
+          <input id="sendAmount" type="number" min="0" step="0.0001" placeholder="0.01" />
+        </div>
+        <div class="field" style="flex:1; min-width: 140px;">
+          <label for="gasPreset">Gas</label>
+          <select id="gasPreset">
+            <option value="standard">Standard</option>
+            <option value="fast">Fast</option>
+            <option value="slow">Slow</option>
+          </select>
+        </div>
+      </div>
+      <button class="action-btn primary-btn clickable" id="sendBtn"><i class="fa-solid fa-paper-plane"></i> Send</button>
+      <p class="small-text" style="margin-top:10px;" id="sendStatus"></p>
+    </div>
+
+    <div class="section">
+      <h2>Security</h2>
+      <p class="sub">Passcode, create, and import tools are local-first.</p>
+      <div class="action-row">
+        <button class="action-btn clickable" id="changePasscodeBtn"><i class="fa-solid fa-lock"></i> Change Passcode</button>
+        <button class="action-btn clickable" id="exportBtn"><i class="fa-solid fa-file-export"></i> Show Seed</button>
+      </div>
+      <p class="small-text" style="margin-top:10px;">Keep your seed phrase offline. Anyone with the seed can access the wallet.</p>
+    </div>
+
+    <div class="footer-gap"></div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modalBox">
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+        <button class="close-btn clickable" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const { ethers } = window;
+
+    const STORAGE = {
+      passHash: 'aero_pass_hash',
+      wallet: 'aero_wallet_data',
+      aero: 'aero_balance',
+      aeroClaim: 'aero_last_claim',
+      username: 'aero_username',
+      revenue: 'aero_revenue',
+      unlocked: 'aero_unlocked'
+    };
+
+    const CONFIG = {
+      alchemyApiKey: 'bNLPVMFQF7mp64oy5Q_Zd',
+      alchemyRpc: 'https://eth-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY',
+      aeroTokenAddress: '0x2897018f295b9d41fCa67280b51D9acCA64aC6e0',
+      aeroPriceUsd: 0.00
+    };
+
+    const els = {
+      lockScreen: document.getElementById('lockScreen'),
+      lockText: document.getElementById('lockText'),
+      passcodeInput: document.getElementById('passcodeInput'),
+      unlockBtn: document.getElementById('unlockBtn'),
+      clearLockBtn: document.getElementById('clearLockBtn'),
+      app: document.getElementById('app'),
+      usernamePill: document.getElementById('usernamePill'),
+      usernameLabel: document.getElementById('usernameLabel'),
+      settingsBtn: document.getElementById('settingsBtn'),
+      addWalletBtn: document.getElementById('addWalletBtn'),
+      copyAddressBtn: document.getElementById('copyAddressBtn'),
+      walletAddress: document.getElementById('walletAddress'),
+      ethBalance: document.getElementById('ethBalance'),
+      ethBalanceFiat: document.getElementById('ethBalanceFiat'),
+      ethPrice: document.getElementById('ethPrice'),
+      ethTokenAmount: document.getElementById('ethTokenAmount'),
+      ethTokenUsd: document.getElementById('ethTokenUsd'),
+      aeroBalance: document.getElementById('aeroBalance'),
+      aeroUsdValue: document.getElementById('aeroUsdValue'),
+      aeroEarned: document.getElementById('aeroEarned'),
+      revenueValue: document.getElementById('revenueValue'),
+      claimBtn: document.getElementById('claimBtn'),
+      claimStatus: document.getElementById('claimStatus'),
+      openImportBtn: document.getElementById('openImportBtn'),
+      sendTo: document.getElementById('sendTo'),
+      sendAmount: document.getElementById('sendAmount'),
+      gasPreset: document.getElementById('gasPreset'),
+      sendBtn: document.getElementById('sendBtn'),
+      sendStatus: document.getElementById('sendStatus'),
+      changePasscodeBtn: document.getElementById('changePasscodeBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      aeroTokenRow: document.getElementById('aeroTokenRow'),
+      ethTokenRow: document.getElementById('ethTokenRow'),
+      modalBackdrop: document.getElementById('modalBackdrop'),
+      modalTitle: document.getElementById('modalTitle'),
+      modalBody: document.getElementById('modalBody'),
+      closeModalBtn: document.getElementById('closeModalBtn'),
+      toast: document.getElementById('toast')
+    };
+
+    let currentWallet = null;
+    let provider = null;
+    let ethUsd = 0;
+
+    function showToast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
+    }
+
+    async function sha256(text) {
+      const data = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function formatEth(v) {
+      return Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    }
+
+    function formatUsd(v) {
+      const n = Number(v || 0);
+      return n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    }
+
+    function shortAddr(addr) {
+      if (!addr) return 'No wallet';
+      return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+
+    function openModal(title, html) {
+      els.modalTitle.textContent = title;
+      els.modalBody.innerHTML = html;
+      els.modalBackdrop.classList.add('show');
+    }
+
+    function closeModal() {
+      els.modalBackdrop.classList.remove('show');
+    }
+
+    async function loadProvider() {
+      if (!CONFIG.alchemyApiKey || CONFIG.alchemyApiKey.includes('YOUR_ALCHEMY_API_KEY')) {
+        provider = new ethers.JsonRpcProvider('https://eth-mainnet.g.alchemy.com/v2/demo');
+      } else {
+        provider = new ethers.JsonRpcProvider(CONFIG.alchemyRpc);
+      }
+    }
+
+    async function getEthPrice() {
+      try {
+        const url = 'https://api.g.alchemy.com/prices/v1/tokens/by-symbol?symbols=ETH';
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${CONFIG.alchemyApiKey}` }
+        });
+        const data = await res.json();
+        const price = Number(data?.data?.[0]?.prices?.[0]?.value || 0);
+        if (price > 0) ethUsd = price;
+        els.ethPrice.textContent = formatUsd(ethUsd || 0);
+        updateLocalUsdDisplays();
+      } catch (e) {
+        console.warn('ETH price failed', e);
+        els.ethPrice.textContent = formatUsd(ethUsd || 0);
+      }
+    }
+
+    async function refreshBalance() {
+      if (!currentWallet || !provider) return;
+      try {
+        const bal = await provider.getBalance(currentWallet.address);
+        const eth = Number(ethers.formatEther(bal));
+        els.ethBalance.textContent = formatEth(eth);
+        els.ethBalanceFiat.textContent = formatUsd(eth * (ethUsd || 0));
+        els.ethTokenAmount.textContent = formatEth(eth);
+        els.ethTokenUsd.textContent = formatUsd(eth * (ethUsd || 0));
+      } catch (e) {
+        console.warn('Balance fetch failed', e);
+        showToast('Unable to load ETH balance');
+      }
+    }
+
+    function updateLocalUsdDisplays() {
+      const aeroBal = Number(localStorage.getItem(STORAGE.aero) || '0');
+      els.aeroBalance.textContent = aeroBal.toFixed(0);
+      els.aeroUsdValue.textContent = `~${formatUsd(aeroBal * CONFIG.aeroPriceUsd)}`;
+      els.aeroEarned.textContent = aeroBal.toFixed(0);
+      const revenue = Number(localStorage.getItem(STORAGE.revenue) || '0');
+      els.revenueValue.textContent = formatUsd(revenue);
+    }
+
+    function saveWalletData(data) {
+      localStorage.setItem(STORAGE.wallet, JSON.stringify(data));
+      currentWallet = new ethers.Wallet(data.privateKey, provider);
+      els.walletAddress.textContent = shortAddr(currentWallet.address);
+      showToast('Wallet saved locally');
+      refreshBalance();
+    }
+
+    async function createWallet(seedWords) {
+      const mnemonic = seedWords || ethers.Mnemonic.entropyToPhrase(ethers.randomBytes(16));
+      const wallet = ethers.Wallet.fromPhrase(mnemonic).connect(provider);
+      const data = {
+        address: wallet.address,
+        privateKey: wallet.privateKey,
+        mnemonic
+      };
+      saveWalletData(data);
+      localStorage.setItem(STORAGE.username, '@aero');
+      els.usernameLabel.textContent = localStorage.getItem(STORAGE.username) || '@aero';
+      return data;
+    }
+
+    function getSavedWallet() {
+      const raw = localStorage.getItem(STORAGE.wallet);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    async function loadWalletFromStorage() {
+      const saved = getSavedWallet();
+      if (!saved) {
+        els.walletAddress.textContent = 'No wallet';
+        return false;
+      }
+      currentWallet = new ethers.Wallet(saved.privateKey, provider);
+      els.walletAddress.textContent = shortAddr(currentWallet.address);
+      els.usernameLabel.textContent = localStorage.getItem(STORAGE.username) || '@aero';
+      await refreshBalance();
+      return true;
+    }
+
+    async function ensurePasscode() {
+      const stored = localStorage.getItem(STORAGE.passHash);
+      if (!stored) {
+        els.lockText.textContent = 'Create a passcode to unlock your wallet.';
+        return { mode: 'create' };
+      }
+      els.lockText.textContent = 'Enter your passcode to unlock.';
+      return { mode: 'unlock' };
+    }
+
+    async function unlockFlow() {
+      const pass = els.passcodeInput.value.trim();
+      if (!pass) return showToast('Enter a passcode');
+      const stored = localStorage.getItem(STORAGE.passHash);
+      if (!stored) {
+        const hash = await sha256(pass);
+        localStorage.setItem(STORAGE.passHash, hash);
+        showToast('Passcode created');
+        els.passcodeInput.value = '';
+        showApp();
+        return;
+      }
+      const hash = await sha256(pass);
+      if (hash !== stored) return showToast('Wrong passcode');
+      localStorage.setItem(STORAGE.unlocked, '1');
+      els.passcodeInput.value = '';
+      showApp();
+    }
+
+    function showApp() {
+      els.lockScreen.classList.remove('show');
+      els.app.classList.remove('hidden');
+    }
+
+    function lockApp() {
+      els.lockScreen.classList.add('show');
+      els.app.classList.add('hidden');
+      localStorage.removeItem(STORAGE.unlocked);
+    }
+
+    function openCreateImportModal() {
+      openModal('Create or Import', `
+        <div class="hint"><b>Create:</b> generate a new local wallet with a 12-word seed. You can also switch to 18 or 24 words.</div>
+        <div class="field">
+          <label>Seed length</label>
+          <select id="seedLen">
+            <option value="12">12 words</option>
+            <option value="18">18 words</option>
+            <option value="24">24 words</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mnemonicArea">Import seed phrase</label>
+          <textarea id="mnemonicArea" placeholder="Enter 12 / 18 / 24 word seed phrase to import"></textarea>
+        </div>
+        <div class="row">
+          <button class="action-btn primary-btn clickable" id="createNewWalletBtn">Create Wallet</button>
+          <button class="action-btn clickable" id="importWalletBtn">Import Wallet</button>
+        </div>
+        <p class="small-text" style="margin-top:10px;">Use test funds only until your real Alchemy key is added.</p>
+      `);
+
+      setTimeout(() => {
+        const createBtn = document.getElementById('createNewWalletBtn');
+        const importBtn = document.getElementById('importWalletBtn');
+        const seedLen = document.getElementById('seedLen');
+        const mnemonicArea = document.getElementById('mnemonicArea');
+
+        createBtn.onclick = async () => {
+          const len = Number(seedLen.value);
+          const entropyBytes = {12:16, 18:24, 24:32}[len] || 16;
+          const mnemonic = ethers.Mnemonic.entropyToPhrase(ethers.randomBytes(entropyBytes));
+          const data = await createWallet(mnemonic);
+          showToast(`${len}-word wallet created`);
+          closeModal();
+          showSeedModal(data.mnemonic);
+        };
+        importBtn.onclick = async () => {
+          const words = mnemonicArea.value.trim().replace(/\s+/g, ' ');
+          const count = words ? words.split(' ').length : 0;
+          if (![12,18,24].includes(count)) return showToast('Use 12, 18, or 24 words');
+          try {
+            const wallet = ethers.Wallet.fromPhrase(words).connect(provider);
+            saveWalletData({ address: wallet.address, privateKey: wallet.privateKey, mnemonic: words });
+            showToast('Wallet imported');
+            closeModal();
+          } catch (e) {
+            showToast('Invalid seed phrase');
+          }
+        };
+      }, 0);
+    }
+
+    function showSeedModal(seed) {
+      openModal('Your Seed Phrase', `
+        <div class="hint">Write this down offline. Anyone with this phrase can control the wallet.</div>
+        <div class="seed-chips">${seed.split(' ').map(w => `<span class="chip">${w}</span>`).join('')}</div>
+        <button class="action-btn primary-btn clickable" id="copySeedBtn">Copy Seed</button>
+      `);
+      setTimeout(() => {
+        document.getElementById('copySeedBtn').onclick = async () => {
+          await navigator.clipboard.writeText(seed);
+          showToast('Seed copied');
+        };
+      }, 0);
+    }
+
+    function showAeroContractModal() {
+      openModal('AERO Contract', `
+        <div class="hint">Contract address for AERO.</div>
+        <div class="field">
+          <label>Contract Address</label>
+          <input id="contractAddrField" readonly value="${CONFIG.aeroTokenAddress}" />
+        </div>
+        <button class="action-btn primary-btn clickable" id="copyContractBtn">Copy Contract</button>
+      `);
+      setTimeout(() => {
+        document.getElementById('copyContractBtn').onclick = async () => {
+          await navigator.clipboard.writeText(CONFIG.aeroTokenAddress);
+          showToast('Contract copied');
+        };
+      }, 0);
+    }
+
+    async function claimAero() {
+      const now = Date.now();
+      const last = Number(localStorage.getItem(STORAGE.aeroClaim) || '0');
+      const day = 24 * 60 * 60 * 1000;
+      const remaining = last ? day - (now - last) : 0;
+      if (remaining > 0) {
+        const hrs = Math.floor(remaining / 3600000);
+        const mins = Math.floor((remaining % 3600000) / 60000);
+        return showToast(`Claim available in ${hrs}h ${mins}m`);
+      }
+      const current = Number(localStorage.getItem(STORAGE.aero) || '0');
+      const updated = current + 3;
+      const revenue = Number(localStorage.getItem(STORAGE.revenue) || '0') + (3 * CONFIG.aeroPriceUsd);
+      localStorage.setItem(STORAGE.aero, String(updated));
+      localStorage.setItem(STORAGE.revenue, String(revenue));
+      localStorage.setItem(STORAGE.aeroClaim, String(now));
+      updateLocalUsdDisplays();
+      updateClaimStatus();
+      showToast('3 AERO claimed');
+    }
+
+    function updateClaimStatus() {
+      const last = Number(localStorage.getItem(STORAGE.aeroClaim) || '0');
+      if (!last) {
+        els.claimStatus.textContent = 'You can claim now.';
+        return;
+      }
+      const remaining = (24 * 60 * 60 * 1000) - (Date.now() - last);
+      if (remaining <= 0) {
+        els.claimStatus.textContent = 'You can claim now.';
+        return;
+      }
+      const hrs = Math.floor(remaining / 3600000);
+      const mins = Math.floor((remaining % 3600000) / 60000);
+      els.claimStatus.textContent = `Next claim in ${hrs}h ${mins}m`;
+    }
+
+    async function sendEth() {
+      if (!currentWallet) return showToast('Create or import a wallet first');
+      const to = els.sendTo.value.trim();
+      const amount = els.sendAmount.value.trim();
+      if (!ethers.isAddress(to)) return showToast('Invalid recipient address');
+      if (!amount || Number(amount) <= 0) return showToast('Enter a valid amount');
+
+      try {
+        els.sendStatus.textContent = 'Preparing transaction...';
+        const signer = currentWallet.connect(provider);
+        const tx = {
+          to,
+          value: ethers.parseEther(amount)
+        };
+
+        const feeData = await provider.getFeeData();
+        if (feeData.maxFeePerGas && feeData.maxPriorityFeePerGas) {
+          tx.maxFeePerGas = feeData.maxFeePerGas;
+          tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+          tx.type = 2;
+        }
+
+        els.sendStatus.textContent = 'Sending transaction...';
+        const sent = await signer.sendTransaction(tx);
+        els.sendStatus.textContent = `Tx sent: ${sent.hash}`;
+        showToast('Transaction sent');
+        await sent.wait();
+        els.sendStatus.textContent = 'Transaction confirmed';
+        await refreshBalance();
+      } catch (e) {
+        console.error(e);
+        els.sendStatus.textContent = 'Send failed';
+        showToast('Transaction failed');
+      }
+    }
+
+    function renderWalletExport() {
+      const saved = getSavedWallet();
+      if (!saved) return showToast('No wallet yet');
+      showSeedModal(saved.mnemonic || 'Seed unavailable');
+    }
+
+    function changePasscode() {
+      openModal('Change Passcode', `
+        <div class="field">
+          <label for="oldPass">Current passcode</label>
+          <input id="oldPass" type="password" placeholder="Current passcode" />
+        </div>
+        <div class="field">
+          <label for="newPass">New passcode</label>
+          <input id="newPass" type="password" placeholder="New passcode" />
+        </div>
+        <button class="action-btn primary-btn clickable" id="savePassBtn">Save Passcode</button>
+      `);
+      setTimeout(() => {
+        document.getElementById('savePassBtn').onclick = async () => {
+          const oldPass = document.getElementById('oldPass').value.trim();
+          const newPass = document.getElementById('newPass').value.trim();
+          if (!oldPass || !newPass) return showToast('Fill both fields');
+          const stored = localStorage.getItem(STORAGE.passHash);
+          if (!stored) return showToast('No existing passcode');
+          const oldHash = await sha256(oldPass);
+          if (oldHash !== stored) return showToast('Wrong current passcode');
+          localStorage.setItem(STORAGE.passHash, await sha256(newPass));
+          showToast('Passcode updated');
+          closeModal();
+        };
+      }, 0);
+    }
+
+    async function init() {
+      await loadProvider();
+      await getEthPrice();
+      updateLocalUsdDisplays();
+      updateClaimStatus();
+      await loadWalletFromStorage();
+
+      const status = await ensurePasscode();
+      if (localStorage.getItem(STORAGE.unlocked) === '1' && localStorage.getItem(STORAGE.passHash)) {
+        showApp();
+      } else {
+        lockApp();
+      }
+
+      if (status.mode === 'create') {
+        els.lockText.textContent = 'Create a passcode to unlock your wallet.';
+      }
+    }
+
+    els.unlockBtn.addEventListener('click', unlockFlow);
+    els.passcodeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') unlockFlow(); });
+    els.clearLockBtn.addEventListener('click', () => {
+      if (!confirm('Delete all local wallet data from this browser?')) return;
+      localStorage.clear();
+      location.reload();
+    });
+
+    els.addWalletBtn.addEventListener('click', openCreateImportModal);
+    els.openImportBtn.addEventListener('click', openCreateImportModal);
+    els.copyAddressBtn.addEventListener('click', async () => {
+      if (!currentWallet) return showToast('No wallet to copy');
+      await navigator.clipboard.writeText(currentWallet.address);
+      showToast('Address copied');
+    });
+    els.usernamePill.addEventListener('click', () => {
+      openModal('Username', `
+        <div class="field">
+          <label for="usernameInput">@ username</label>
+          <input id="usernameInput" type="text" placeholder="aero" value="${(localStorage.getItem(STORAGE.username) || '@aero').replace('@','')}" />
+        </div>
+        <button class="action-btn primary-btn clickable" id="saveUsernameBtn">Save Username</button>
+      `);
+      setTimeout(() => {
+        document.getElementById('saveUsernameBtn').onclick = () => {
+          const v = document.getElementById('usernameInput').value.trim().replace(/^@+/, '');
+          if (!v) return showToast('Enter a username');
+          const name = '@' + v;
+          localStorage.setItem(STORAGE.username, name);
+          els.usernameLabel.textContent = name;
+          showToast('Username saved');
+          closeModal();
+        };
+      }, 0);
+    });
+    els.aeroTokenRow.addEventListener('click', showAeroContractModal);
+    els.ethTokenRow.addEventListener('click', () => showToast('ETH main wallet token'));
+    els.claimBtn.addEventListener('click', claimAero);
+    els.sendBtn.addEventListener('click', sendEth);
+    els.changePasscodeBtn.addEventListener('click', changePasscode);
+    els.exportBtn.addEventListener('click', renderWalletExport);
+    els.settingsBtn.addEventListener('click', () => {
+      openModal('Settings', `
+        <div class="hint">Update the constants in the HTML file for your real Alchemy API key and AERO contract address.</div>
+        <p class="small-text">Current AERO contract: <b>${CONFIG.aeroTokenAddress}</b></p>
+        <p class="small-text">Current Alchemy key: <b>${CONFIG.alchemyApiKey}</b></p>
+      `);
+    });
+    els.closeModalBtn.addEventListener('click', closeModal);
+    els.modalBackdrop.addEventListener('click', (e) => { if (e.target === els.modalBackdrop) closeModal(); });
+
+    setInterval(async () => {
+      updateClaimStatus();
+      if (currentWallet) await refreshBalance();
+      await getEthPrice();
+    }, 60000);
+
+    init();
+  </script>
+</body>
+</html>
