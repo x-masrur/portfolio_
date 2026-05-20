@@ -84,7 +84,7 @@
       </div>
     </div>
 
-    <div class="absolute top-16 left-6 w-64 bg-[#F4ECD8] brutal-border brutal-shadow p-4 flex flex-col z-20">
+    <div class="absolute top-16 left-6 w-64 bg-[#F4ECD8] brutal-border brutal-shadow p-4 flex flex-col z-20 hidden md:flex">
       
       <div class="flex justify-center mb-4">
         <div class="w-12 h-12 brutal-border bg-white flex items-center justify-center brutal-shadow">
@@ -140,8 +140,13 @@
         <span class="text-xs font-bold bg-white px-1 brutal-border">Desktop</span>
       </div>
 
+      <div onclick="toggleWindow('window-vscode')" class="flex flex-col items-center gap-2 icon-hover w-20">
+        <i class="fa-solid fa-code text-3xl text-[#007ACC]"></i>
+        <span class="text-xs font-bold bg-white px-1 brutal-border">VS Code</span>
+      </div>
+
       <div onclick="toggleWindow('window-downloads')" class="flex flex-col items-center gap-2 icon-hover w-20">
-        <i class="fa-solid fa-folder-open text-3xl"></i>
+        <i class="fa-solid fa-folder-open text-3xl text-yellow-500"></i>
         <span class="text-xs font-bold bg-white px-1 brutal-border">Downloads</span>
       </div>
 
@@ -157,20 +162,20 @@
 
     </div>
 
-    <div id="window-browser" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 w-[90%] md:w-[600px] bg-[#F4ECD8] brutal-border brutal-shadow z-30 flex flex-col h-[70%]">
+    <div id="window-browser" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 w-[90%] md:w-[600px] bg-[#F4ECD8] brutal-border brutal-shadow z-30 flex flex-col h-[60%] md:h-[55%]">
       <div class="bg-white border-b-3 border-[#1E1E1E] px-4 py-1 flex justify-between items-center cursor-move border-b-[3px]">
         <div class="flex gap-2">
           <div class="w-3 h-3 rounded-full border-2 border-[#1E1E1E]"></div>
           <div class="w-3 h-3 rounded-full border-2 border-[#1E1E1E]"></div>
         </div>
-        <span class="text-xs font-bold">/home/portfolio - qutebrowser</span>
+        <span class="text-xs font-bold truncate ml-2">/home/portfolio - qutebrowser</span>
         <button onclick="toggleWindow('window-browser')" class="font-bold hover:bg-red-400 px-1 border-2 border-transparent hover:border-[#1E1E1E]">X</button>
       </div>
       
       <div class="flex-1 p-6 bg-[#A3D2D5] flex flex-col items-center gap-6 overflow-y-auto">
         
         <div class="w-full bg-[#F4ECD8] brutal-border brutal-shadow px-4 py-2 flex items-center">
-          <span class="font-bold">Search https://portfolio.local</span>
+          <span class="font-bold">https://portfolio.local</span>
         </div>
 
         <div class="w-full bg-[#F4ECD8] brutal-border brutal-shadow p-6 text-center">
@@ -202,23 +207,111 @@
       </div>
     </div>
 
-    <div id="window-downloads" class="hidden absolute top-24 left-1/3 w-[90%] md:w-[450px] bg-[#F4ECD8] brutal-border brutal-shadow z-30 flex flex-col">
-      <div class="bg-white border-b-3 border-[#1E1E1E] px-4 py-1 flex justify-between items-center cursor-move border-b-[3px]">
-        <span class="text-xs font-bold">/home/downloads/projects</span>
+    <div id="window-vscode" class="hidden absolute top-20 left-[5%] md:left-1/4 w-[90%] md:w-[650px] bg-[#1E1E1E] brutal-border brutal-shadow z-30 flex flex-col h-[65%] md:h-[60%]">
+      <div class="bg-white border-b-[3px] border-[#1E1E1E] px-4 py-1 flex justify-between items-center cursor-move">
+        <span class="text-xs font-bold"><i class="fa-solid fa-code text-[#007ACC] mr-1"></i> AERO_Contracts.sol - Visual Studio Code</span>
+        <button onclick="toggleWindow('window-vscode')" class="font-bold hover:bg-red-400 px-1 border-2 border-transparent hover:border-[#1E1E1E]">X</button>
+      </div>
+      
+      <div class="flex-1 flex overflow-hidden bg-[#1E1E1E]">
+        <div class="w-12 border-r border-[#333333] flex flex-col items-center py-4 gap-6 text-xl">
+          <i class="fa-regular fa-file text-white cursor-pointer hover:text-gray-300"></i>
+          <i class="fa-solid fa-magnifying-glass text-gray-500 cursor-pointer hover:text-gray-300"></i>
+          <i class="fa-solid fa-code-branch text-gray-500 cursor-pointer hover:text-gray-300"></i>
+          <i class="fa-solid fa-cube text-gray-500 cursor-pointer hover:text-gray-300"></i>
+        </div>
+        
+        <div class="flex-1 p-4 overflow-auto font-mono text-[12px] md:text-sm text-[#D4D4D4] whitespace-pre"><span class="text-[#569CD6]">pragma</span> <span class="text-[#4EC9B0]">solidity</span> <span class="text-[#B5CEA8]">^0.8.0</span>;
+
+<span class="text-[#6A9955]">// AERO Wallet Core Smart Contract</span>
+<span class="text-[#6A9955]">// Developed by Masrur Ahmmed</span>
+
+<span class="text-[#569CD6]">contract</span> <span class="text-[#4EC9B0]">AEROWallet</span> {
+    <span class="text-[#569CD6]">mapping</span>(<span class="text-[#4EC9B0]">address</span> => <span class="text-[#4EC9B0]">uint256</span>) <span class="text-[#569CD6]">public</span> balances;
+
+    <span class="text-[#569CD6]">event</span> <span class="text-[#4EC9B0]">Deposit</span>(<span class="text-[#4EC9B0]">address</span> <span class="text-[#569CD6]">indexed</span> sender, <span class="text-[#4EC9B0]">uint256</span> amount);
+    <span class="text-[#569CD6]">event</span> <span class="text-[#4EC9B0]">Withdrawal</span>(<span class="text-[#4EC9B0]">address</span> <span class="text-[#569CD6]">indexed</span> receiver, <span class="text-[#4EC9B0]">uint256</span> amount);
+
+    <span class="text-[#569CD6]">function</span> <span class="text-[#DCDCAA]">deposit</span>() <span class="text-[#569CD6]">public</span> <span class="text-[#569CD6]">payable</span> {
+        balances[<span class="text-[#569CD6]">msg</span>.sender] += <span class="text-[#569CD6]">msg</span>.value;
+        <span class="text-[#C586C0]">emit</span> <span class="text-[#DCDCAA]">Deposit</span>(<span class="text-[#569CD6]">msg</span>.sender, <span class="text-[#569CD6]">msg</span>.value);
+    }
+
+    <span class="text-[#569CD6]">function</span> <span class="text-[#DCDCAA]">withdraw</span>(<span class="text-[#4EC9B0]">uint256</span> <span class="text-[#9CDCFE]">_amount</span>) <span class="text-[#569CD6]">public</span> {
+        <span class="text-[#C586C0]">require</span>(balances[<span class="text-[#569CD6]">msg</span>.sender] >= <span class="text-[#9CDCFE]">_amount</span>, <span class="text-[#CE9178]">"AERO: Insufficient funds"</span>);
+        
+        balances[<span class="text-[#569CD6]">msg</span>.sender] -= <span class="text-[#9CDCFE]">_amount</span>;
+        <span class="text-[#569CD6]">payable</span>(<span class="text-[#569CD6]">msg</span>.sender).<span class="text-[#DCDCAA]">transfer</span>(<span class="text-[#9CDCFE]">_amount</span>);
+        
+        <span class="text-[#C586C0]">emit</span> <span class="text-[#DCDCAA]">Withdrawal</span>(<span class="text-[#569CD6]">msg</span>.sender, <span class="text-[#9CDCFE]">_amount</span>);
+    }
+}
+        </div>
+      </div>
+    </div>
+
+    <div id="window-downloads" class="hidden absolute top-32 left-[5%] md:left-1/3 w-[90%] md:w-[550px] bg-[#F4ECD8] brutal-border brutal-shadow z-30 flex flex-col h-[380px]">
+      <div class="bg-white border-b-[3px] border-[#1E1E1E] px-4 py-1 flex justify-between items-center cursor-move">
+        <span class="text-xs font-bold"><i class="fa-solid fa-folder-open mr-1"></i> /home/masrur/files</span>
         <button onclick="toggleWindow('window-downloads')" class="font-bold hover:bg-red-400 px-1 border-2 border-transparent hover:border-[#1E1E1E]">X</button>
       </div>
-      <div class="p-6 bg-white grid grid-cols-3 gap-6">
-        <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-gray-200 p-2 border-2 border-transparent hover:border-[#1E1E1E]">
-          <i class="fa-solid fa-file-pdf text-4xl text-red-500"></i>
-          <span class="text-xs font-bold text-center">mecozx_wp.pdf</span>
+      
+      <div class="flex-1 flex overflow-hidden">
+        
+        <div class="w-1/3 border-r-[3px] border-[#1E1E1E] bg-[#F4ECD8] p-2 flex flex-col gap-1 text-xs font-bold select-none">
+          <button onclick="switchFolder('projects')" id="btn-fold-projects" class="w-full text-left p-1.5 bg-white brutal-border">
+            <i class="fa-solid fa-folder text-yellow-500 mr-1"></i> Projects
+          </button>
+          <button onclick="switchFolder('photos')" id="btn-fold-photos" class="w-full text-left p-1.5 hover:bg-white/60">
+            <i class="fa-solid fa-images text-purple-500 mr-1"></i> Screenshots
+          </button>
+          <button onclick="switchFolder('music')" id="btn-fold-music" class="w-full text-left p-1.5 hover:bg-white/60">
+            <i class="fa-solid fa-music text-blue-500 mr-1"></i> Audio Files
+          </button>
         </div>
-        <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-gray-200 p-2 border-2 border-transparent hover:border-[#1E1E1E]">
-          <i class="fa-solid fa-file-zipper text-4xl text-blue-500"></i>
-          <span class="text-xs font-bold text-center">AERO.zip</span>
-        </div>
-        <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-gray-200 p-2 border-2 border-transparent hover:border-[#1E1E1E]">
-          <i class="fa-solid fa-folder text-4xl text-yellow-500"></i>
-          <span class="text-xs font-bold text-center">Growup_LMS</span>
+
+        <div class="w-2/3 bg-white p-4 overflow-y-auto">
+          
+          <div id="folder-projects" class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col items-center gap-1 p-2 brutal-border bg-[#F4ECD8]/30 cursor-pointer hover:bg-[#A3D2D5]/40 transition-colors">
+              <i class="fa-solid fa-file-code text-3xl text-emerald-600"></i>
+              <span class="text-[10px] font-bold text-center break-all">mecozx_core.js</span>
+            </div>
+            <div onclick="toggleWindow('window-vscode')" class="flex flex-col items-center gap-1 p-2 brutal-border bg-[#F4ECD8]/30 cursor-pointer hover:bg-[#A3D2D5]/40 transition-colors">
+              <i class="fa-solid fa-cubes text-3xl text-indigo-600"></i>
+              <span class="text-[10px] font-bold text-center break-all">AERO_Contracts.sol</span>
+            </div>
+          </div>
+
+          <div id="folder-photos" class="hidden grid grid-cols-2 gap-4">
+            <div class="brutal-border p-1 bg-[#F4ECD8] flex flex-col gap-1">
+              <div class="h-20 bg-gray-200 overflow-hidden brutal-border">
+                <img src="project1.jpeg" alt="mecozx UI" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80'">
+              </div>
+              <span class="text-[9px] font-bold text-center truncate">mecozx_ui.jpeg</span>
+            </div>
+            <div class="brutal-border p-1 bg-[#F4ECD8] flex flex-col gap-1">
+              <div class="h-20 bg-gray-200 overflow-hidden brutal-border">
+                <img src="project2.jpeg" alt="AERO UI" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&w=150&q=80'">
+              </div>
+              <span class="text-[9px] font-bold text-center truncate">aero_charts.jpeg</span>
+            </div>
+          </div>
+
+          <div id="folder-music" class="hidden flex flex-col gap-2">
+            <div onclick="selectTrack('music.mp3', 'My Favorite Track')" class="flex items-center justify-between p-2 brutal-border bg-[#A3D2D5]/20 cursor-pointer hover:bg-[#A3D2D5]/50 transition-all">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-file-audio text-xl text-blue-600"></i>
+                <span class="text-xs font-bold">music.mp3</span>
+              </div>
+              <span class="text-[10px] font-bold opacity-60">Active Track</span>
+            </div>
+            
+            <p class="text-[10px] font-bold text-gray-500 mt-4 border-t border-dashed border-gray-400 pt-2">
+              💡 Tip: Clicking an audio file in this directory automatically wires it to your desktop media console.
+            </p>
+          </div>
+
         </div>
       </div>
     </div>
@@ -341,6 +434,39 @@
         playIcon.classList.remove('fa-pause');
         playIcon.classList.add('fa-play');
       }
+    }
+
+    // --- Interactive File Manager View Switching ---
+    function switchFolder(folderName) {
+      // Containers to toggle
+      const folders = ['projects', 'photos', 'music'];
+      folders.forEach(f => {
+        document.getElementById(`folder-${f}`).classList.add('hidden');
+        document.getElementById(`btn-fold-${f}`).classList.remove('bg-white', 'brutal-border');
+      });
+
+      // Show current selection
+      document.getElementById(`folder-${folderName}`).classList.remove('hidden');
+      document.getElementById(`btn-fold-${folderName}`).classList.add('bg-white', 'brutal-border');
+    }
+
+    // --- Dynamic Track Assignment ---
+    function selectTrack(fileName, trackTitle) {
+      const audioSource = document.querySelector('#bg-music source');
+      const audioPlayer = document.getElementById('bg-music');
+      
+      // Update media source details
+      audioSource.src = fileName;
+      document.querySelector('.whitespace-nowrap').innerText = trackTitle;
+      
+      // Reload audio asset safely
+      audioPlayer.load();
+      
+      // Force play
+      audioPlayer.play().then(() => {
+        document.getElementById('play-icon').classList.remove('fa-play');
+        document.getElementById('play-icon').classList.add('fa-pause');
+      }).catch(err => console.log("Audio reload handled safely. Click Play to start new track."));
     }
 
     // Focus input on load
