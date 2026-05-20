@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Listening Quiz</title>
+  <style>
+     @font-face {
+             font-family: "CustomFont";
+             src: url("font.ttf") format("truetype");
+             font-weight: normal;
+             font-style: normal;
+        }
+    
+    :root{
+      --bg:#f6f8fb;
+      --card:#fff;
+      --accent:#2b6cb0;
+      --muted:#6b7280;
+      --success:#16a34a;
+      --danger:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "CustomFont", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background:linear-gradient(180deg,#eef2ff 0%,var(--bg) 100%);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    /* Modal popup center */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(2,6,23,0.45);
+      z-index:40;
+    }
+    .modal{
+      width:380px;
+      background:var(--card);
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.2);
+      text-align:left;
+    }
+    .modal h2{margin:0 0 8px 0;font-size:18px;color:#0f172a}
+    .meta{color:var(--muted);font-size:14px;margin-bottom:16px}
+    .meta strong{color:#111827}
+    .btn{
+      font-family: "CustomFont", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display:inline-block;padding:10px 14px;border-radius:8px;
+      background:var(--accent);color:#fff;text-decoration:none;font-weight:600;border:none;
+      cursor:pointer;font-size:14px;
+    }
+    .btn.secondary{background:#e6edf8;color:var(--accent);font-weight:700}
+
+    /* Quiz area */
+    .quiz-wrap{
+      width:900px;
+      max-width:100%;
+      background:var(--card);
+      border-radius:12px;
+      padding:18px;
+      box-shadow:0 6px 18px rgba(2,6,23,0.08);
+    }
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+      gap:12px;
+    }
+    .timer{
+      font-weight:700;color:var(--danger);
+      background:#fff4f4;padding:6px 10px;border-radius:10px;border:1px solid rgba(220,38,38,0.08)
+    }
+    .song-info{font-size:14px;color:var(--muted)}
+    .questions{margin-top:10px}
+    .q{
+      padding:12px;border-radius:10px;border:1px solid #eef2ff;margin-bottom:10px;background:linear-gradient(180deg,#fff,#fbfdff);
+    }
+    label{display:block;font-weight:600;margin-bottom:6px}
+    input[type="text"]{
+      width:100%;padding:9px;border:1px solid #e6eef6;border-radius:8px;font-size:14px;
+    }
+    .controls{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .result{
+      margin-top:16px;padding:12px;border-radius:10px;background:#f8fafc;border:1px solid #e6eef6;
+    }
+    .correct{color:var(--success);font-weight:700}
+    .wrong{color:var(--danger);font-weight:700}
+    .answer-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .small{font-size:13px;color:var(--muted)}
+    .per-q-feedback{margin-top:8px}
+    @media(max-width:480px){
+      .modal{width:90%}
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Modal popup -->
+  <div id="startupModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">Listening Topic : Song</h2>
+      <div class="meta">
+        <div><strong>Name :</strong> <span id="songName">Line Without</span></div>
+        <div style="margin-top:6px"><strong>Duration :</strong> <span id="songDuration">4 min</span></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <button id="startBtn" class="btn">Start Quiz</button>
+        <button id="openAudio" class="btn secondary">Play Song Preview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main quiz container (hidden before start) -->
+  <div id="quizContainer" class="quiz-wrap" style="display:none">
+    <div class="topbar">
+      <div>
+        <div class="song-info"><strong>Listening Topic:</strong> Song — <span id="qcSongName">Line Without**</span></div>
+        <div class="small" style="margin-top:6px"><strong>Duration:</strong> 3.28</div>
+      </div>
+      <div style="text-align:right">
+        <div class="small">Time remaining</div>
+        <div id="timer" class="timer">05:00</div>
+      </div>
+    </div>
+
+    <div id="questionArea" class="questions">
+      <!-- Questions injected by JS -->
+    </div>
+
+    <div class="controls">
+      <button id="submitBtn" class="btn">Submit</button>
+    </div>
+
+    <div id="resultArea" class="result" style="display:none"></div>
+  </div>
+
+  <!-- Audio (optional) -->
+  <audio id="songAudio" src="ordinary.mp3"preload="none"></audio>
+
+  <script>
+    // Configuration: customize songName, duration and questions here
+    const CONFIG = {
+      songName: "Perfect",
+      durationMinutes: 4.20,
+      // Simple sample questions: change texts and expectedAnswers (case-insensitive)
+    questions: [
+    { prompt: "I found a ______ for me", expectedAnswer: "love" },
+    { prompt: "Oh darling, just dive right in and follow my ______", expectedAnswer: "lead" },
+    { prompt: "Well, I found a ______, beautiful and sweet", expectedAnswer: "girl" },
+    { prompt: "Oh, I never knew you were the someone waiting for ______", expectedAnswer: "me" },
+    { prompt: "'Cause we were just kids when we fell in ______", expectedAnswer: "love" },
+    { prompt: "Not knowing what it ______", expectedAnswer: "was" },
+    { prompt: "I will not give you up this ______", expectedAnswer: "time" },
+    { prompt: "But darling, just kiss me ______", expectedAnswer: "slow" },
+    { prompt: "Your heart is all I ______", expectedAnswer: "own" },
+    { prompt: "And in your eyes, you're holding ______", expectedAnswer: "mine" },
+    { prompt: "Baby, I'm dancing in the ______", expectedAnswer: "dark" },
+    { prompt: "With you between my ______", expectedAnswer: "arms" },
+    { prompt: "Barefoot on the ______", expectedAnswer: "grass" },
+    { prompt: "Listening to our favorite ______", expectedAnswer: "song" },
+    { prompt: "When you said you looked a ______", expectedAnswer: "mess" },
+    { prompt: "I whispered underneath my ______", expectedAnswer: "breath" },
+    { prompt: "But you heard ______", expectedAnswer: "it" },
+    { prompt: "Darling, you look ______ tonight", expectedAnswer: "perfect" }
+  ]
+};
+
+
+    // DOM refs
+    const startupModal = document.getElementById('startupModal');
+    const startBtn = document.getElementById('startBtn');
+    const openAudio = document.getElementById('openAudio');
+    const quizContainer = document.getElementById('quizContainer');
+    const timerEl = document.getElementById('timer');
+    const questionArea = document.getElementById('questionArea');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultArea = document.getElementById('resultArea');
+    const qcSongName = document.getElementById('qcSongName');
+    const songNameSpan = document.getElementById('songName');
+    const songDurationSpan = document.getElementById('songDuration');
+
+    // Put config values into the UI
+    songNameSpan.textContent = CONFIG.songName;
+    qcSongName.textContent = CONFIG.songName;
+    songDurationSpan.textContent = CONFIG.durationMinutes + " min";
+
+    // Build question inputs
+    function renderQuestions() {
+      questionArea.innerHTML = "";
+      CONFIG.questions.forEach((q, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'q';
+        wrapper.innerHTML = `
+          <label for="q${idx}">Q${idx+1}. ${escapeHtml(q.prompt)}</label>
+          <input type="text" id="q${idx}" data-idx="${idx}" autocomplete="off" />
+          <div class="per-q-feedback" id="fb${idx}" style="display:none"></div>
+        `;
+        questionArea.appendChild(wrapper);
+      });
+    }
+
+    // Basic HTML escape
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[c])); }
+
+    // Timer logic
+    let timerSeconds = CONFIG.durationMinutes * 60;
+    let timerInterval = null;
+    let quizStarted = false;
+    let submitted = false;
+
+    function formatTime(s){
+      const m = Math.floor(s/60).toString().padStart(2,'0');
+      const sec = (s%60).toString().padStart(2,'0');
+      return `${m}:${sec}`;
+    }
+
+    function startTimer() {
+      timerEl.textContent = formatTime(timerSeconds);
+      timerInterval = setInterval(() => {
+        timerSeconds--;
+        if (timerSeconds < 0) {
+          clearInterval(timerInterval);
+          timerEl.textContent = "00:00";
+          if (!submitted) doSubmit(true);
+          return;
+        }
+        timerEl.textContent = formatTime(timerSeconds);
+      }, 1000);
+    }
+
+    // Submit handling: auto indicates auto-submitted due to timeout
+    function doSubmit(isAuto=false) {
+      submitted = true;
+      clearInterval(timerInterval);
+      // collect answers
+      const responses = CONFIG.questions.map((q, idx) => {
+        const val = (document.getElementById('q'+idx).value || "").trim();
+        return { prompt: q.prompt, expected: q.expectedAnswer, given: val };
+      });
+
+      // grading: simple case-insensitive comparison, trim punctuation
+      let score = 0;
+      const perQuestionHtml = responses.map((r, idx) => {
+        const normGiven = normalizeAnswer(r.given);
+        const normExpected = normalizeAnswer(r.expected);
+        const correct = normGiven === normExpected;
+        if (correct) score++;
+        const correctText = `<span class="correct">Correct</span>`;
+        const wrongText = `<span class="wrong">Wrong</span>`;
+        const answerRow = `
+          <div class="answer-row">
+            <div style="flex:1">
+              <div style="font-weight:700">Q${idx+1}. ${escapeHtml(r.prompt)}</div>
+              <div class="small">Your answer: <strong>${escapeHtml(r.given || "(no answer)")}</strong></div>
+              <div class="small">Expected: <strong>${escapeHtml(r.expected)}</strong></div>
+            </div>
+            <div style="min-width:120px;text-align:right">${ correct ? correctText : wrongText }</div>
+          </div>
+        `;
+        return `<div style="margin-bottom:10px">${answerRow}</div>`;
+      }).join("");
+
+      // review message
+      const percent = (score / CONFIG.questions.length) * 100;
+      let review = "";
+      if (percent >= 70) {
+        review = `<div style="font-size:16px;font-weight:800;color:${getColor('good')}">Great job — your listening skill is good</div>
+                  <div class="small" style="margin-top:6px">You answered ${score} out of ${CONFIG.questions.length} correctly.</div>`;
+      } else {
+        review = `<div style="font-size:16px;font-weight:800;color:${getColor('bad')}">Try focusing more on listening</div>
+                  <div class="small" style="margin-top:6px">You answered ${score} out of ${CONFIG.questions.length} correctly. Review the correct answers above and try again.</div>`;
+      }
+
+      resultArea.style.display = 'block';
+      resultArea.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <div style="font-size:18px;font-weight:800">Score: ${score} / ${CONFIG.questions.length}</div>
+            <div class="small" style="margin-top:6px">${isAuto ? "Auto-submitted due to time limit." : "Submitted."}</div>
+          </div>
+          <div>${review}</div>
+        </div>
+        <hr style="margin:12px 0;border:none;border-top:1px solid #eef2ff;">
+        <div>${perQuestionHtml}</div>
+      `;
+
+      // Disable inputs and submit button
+      CONFIG.questions.forEach((_, idx) => {
+        const el = document.getElementById('q'+idx);
+        if (el) el.disabled = true;
+      });
+      submitBtn.disabled = true;
+    }
+
+    function normalizeAnswer(s){
+      return (s||"").toLowerCase().replace(/[^\w\s]/g,'').trim();
+    }
+
+    function getColor(key){
+      return key === 'good' ? '#16a34a' : '#dc2626';
+    }
+
+    // Event wiring
+    startBtn.addEventListener('click', () => {
+      startupModal.style.display = 'none';
+      quizContainer.style.display = 'block';
+      renderQuestions();
+      quizStarted = true;
+      timerSeconds = CONFIG.durationMinutes * 60;
+      timerEl.textContent = formatTime(timerSeconds);
+      startTimer();
+      // If you want the audio to start automatically (may be blocked by browser), uncomment:
+      // document.getElementById('songAudio').play().catch(()=>{});
+    });
+
+    // Optional: open audio control - in this demo the src is empty. Replace audio src in the audio tag for real content.
+    openAudio.addEventListener('click', () => {
+      const audio = document.getElementById('songAudio');
+      if(!audio.src){
+        alert('No audio file configured. To enable preview, set the audio src in the HTML.');
+        return;
+      }
+      audio.paused ? audio.play() : audio.pause();
+    });
+
+    submitBtn.addEventListener('click', () => {
+      if (!quizStarted || submitted) return;
+      if (!confirm("Submit your answers now?")) return;
+      doSubmit(false);
+    });
+
+    // Ensure auto-submit also on page unload (optional safety)
+    window.addEventListener('beforeunload', (e) => {
+      if (quizStarted && !submitted) {
+        // Attempt to auto-submit or warn user. We'll warn.
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Initialize UI but keep modal open at start
+    renderQuestions();
+  </script>
+
+</body>
+</html>
