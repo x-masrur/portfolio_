@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>$MAS Token</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg:         #0d0d12;
+  --bg2:        #13131a;
+  --surface:    #1a1a24;
+  --surface2:   #22222e;
+  --border:     rgba(255,255,255,0.07);
+  --border2:    rgba(255,255,255,0.13);
+  --text:       #f0f0f5;
+  --muted:      #6b6b80;
+  --muted2:     #9090a8;
+  --orange:     #ff6b00;
+  --orange2:    #ff8c38;
+  --orange-glow:rgba(255,107,0,0.18);
+  --green:      #22c55e;
+  --discord:    #5865F2;
+  --tg:         #2AABEE;
+  --danger:     #ef4444;
+  --danger-bg:  rgba(239,68,68,0.12);
+  --gold:       #f5c842;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'MasFont';
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+}
+/* Custom font fallback — place font.ttf beside this file */
+@font-face{
+  font-family:'MasFont';
+  src:url('font.ttf') format('truetype');
+  font-display:swap;
+}
+
+/* ═══════════════════════════════════════════
+   NOISE OVERLAY
+═══════════════════════════════════════════ */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.5;
+}
+
+/* ═══════════════════════════════════════════
+   PAGES
+═══════════════════════════════════════════ */
+.page{
+  width:100%;max-width:430px;min-height:100vh;
+  display:none;flex-direction:column;
+  padding:0;position:relative;z-index:1;
+}
+.page.active{display:flex;}
+
+/* ═══════════════════════════════════════════
+   ONBOARDING PAGE
+═══════════════════════════════════════════ */
+#ob{padding:44px 24px 48px;gap:0;overflow-y:auto;}
+
+.ob-eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:36px;
+  display:flex;align-items:center;gap:8px;
+}
+.ob-eyebrow::before{
+  content:'';display:block;width:20px;height:1.5px;background:var(--orange);
+}
+
+.ob-hero{margin-bottom:10px;}
+.ob-hero-title{
+  font-size:clamp(3.8rem,15vw,5.2rem);font-weight:800;
+  line-height:0.88;letter-spacing:-0.03em;
+  color:var(--text);
+}
+.ob-hero-title .hi{color:var(--orange);font-family:'MasFont','Syne',sans-serif;}
+
+.ob-sub{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.75rem;color:var(--muted2);
+  line-height:1.7;margin-bottom:44px;margin-top:14px;
+}
+
+/* Tabs */
+.ob-tabs{
+  display:flex;background:var(--surface);
+  border-radius:14px;padding:4px;gap:4px;margin-bottom:26px;
+  border:1px solid var(--border);
+}
+.ob-tab{
+  flex:1;padding:10px 0;border:none;border-radius:10px;
+  font-family:'Syne',sans-serif;font-size:0.8rem;font-weight:700;
+  cursor:pointer;background:transparent;color:var(--muted);
+  transition:all 0.2s;letter-spacing:0.02em;
+}
+.ob-tab.active{
+  background:var(--orange);color:#fff;
+  box-shadow:0 0 20px var(--orange-glow);
+}
+
+/* Panels */
+.ob-panel{display:none;flex-direction:column;gap:14px;}
+.ob-panel.active{display:flex;}
+.ob-step{display:none;flex-direction:column;gap:14px;}
+.ob-step.active{display:flex;}
+
+/* Input */
+.ob-input{
+  width:100%;padding:14px 16px;
+  border-radius:13px;
+  border:1.5px solid var(--border2);
+  font-family:'IBM Plex Mono',monospace;font-size:0.85rem;
+  background:var(--surface);color:var(--text);
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+}
+.ob-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-glow);}
+.ob-input::placeholder{color:var(--muted);}
+textarea.ob-input{resize:none;height:96px;font-size:0.78rem;line-height:1.7;}
+
+/* Buttons */
+.ob-btn{
+  padding:15px;border-radius:14px;border:none;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;
+  cursor:pointer;transition:transform 0.1s,opacity 0.2s,box-shadow 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  letter-spacing:0.02em;
+}
+.ob-btn:active{transform:scale(0.97);}
+.ob-btn-primary{
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  color:#fff;box-shadow:0 4px 24px var(--orange-glow);
+}
+.ob-btn-primary:hover{box-shadow:0 6px 32px rgba(255,107,0,0.35);}
+.ob-btn-ghost{
+  background:var(--surface);color:var(--muted2);
+  border:1.5px solid var(--border2);
+}
+
+.ob-notice{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.68rem;color:var(--muted);
+  text-align:center;line-height:1.6;
+}
+
+/* Seed phrase */
+.seed-warning{
+  display:flex;align-items:flex-start;gap:10px;
+  background:rgba(245,200,66,0.08);
+  border:1px solid rgba(245,200,66,0.2);
+  border-radius:13px;padding:14px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.73rem;line-height:1.6;color:#d4a800;
+}
+.seed-box{
+  background:var(--surface);border-radius:14px;
+  padding:16px;display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;border:1px solid var(--border2);
+}
+.seed-word{
+  background:var(--surface2);border-radius:9px;
+  padding:8px 9px;font-family:'IBM Plex Mono',monospace;
+  font-size:0.72rem;display:flex;gap:6px;align-items:baseline;
+}
+.seed-num{color:var(--orange);font-size:0.6rem;flex-shrink:0;}
+
+/* Spinner */
+.spinner{
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,0.25);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin 0.6s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ob-btn.loading .btn-label{display:none;}
+.ob-btn.loading .spinner{display:block;}
+
+/* ═══════════════════════════════════════════
+   MAIN PAGE
+═══════════════════════════════════════════ */
+#main{padding:20px 20px 36px;flex-direction:column;}
+
+/* Orange ambient glow behind coin */
+#main::before{
+  content:'';position:absolute;
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,107,0,0.12) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-55%);
+  pointer-events:none;z-index:0;
+}
+
+/* Top bar */
+.top-bar{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;margin-bottom:22px;
+  position:relative;z-index:2;gap:12px;
+}
+
+/* ─── PROFILE CARD ─── */
+.profile-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:18px;
+  padding:12px 14px 10px;
+  flex:1;min-width:0;
+  box-shadow:0 4px 24px rgba(0,0,0,0.35);
+  position:relative;overflow:hidden;
+  transition:border-color 0.2s;
+}
+.profile-card::before{
+  content:'';position:absolute;
+  top:-30px;right:-30px;
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,var(--orange-glow) 0%,transparent 70%);
+  pointer-events:none;
+}
+.profile-card:hover{border-color:rgba(255,107,0,0.3);}
+
+.profile-row1{
+  display:flex;align-items:center;gap:7px;margin-bottom:6px;
+}
+.profile-avatar{
+  width:24px;height:24px;border-radius:8px;
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:800;color:#fff;flex-shrink:0;
+  font-family:'MasFont','Syne',sans-serif;
+}
+.profile-username{
+  font-weight:700;font-size:0.88rem;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-family:'MasFont','Syne',sans-serif;letter-spacing:0.01em;
+}
+.profile-badge{
+  margin-left:auto;flex-shrink:0;
+  background:rgba(34,197,94,0.15);
+  border:1px solid rgba(34,197,94,0.3);
+  border-radius:20px;padding:2px 7px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.58rem;color:var(--green);letter-spacing:0.06em;
+  white-space:nowrap;
+}
+
+.profile-addr-row{
+  display:flex;align-items:center;gap:7px;
+}
+.profile-address{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.72rem;color:var(--muted2);
+  letter-spacing:0.04em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:1;min-width:0;
+}
+.copy-btn{
+  flex-shrink:0;width:24px;height:24px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:7px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.18s;position:relative;
+}
+.copy-btn:active{transform:scale(0.88);}
+.copy-btn:hover{background:var(--orange);border-color:var(--orange);}
+.copy-btn:hover svg path,.copy-btn:hover svg rect,.copy-btn:hover svg polyline{stroke:#fff;}
+.copy-btn.copied{background:var(--green);border-color:var(--green);}
+
+.eth-balance-row{
+  margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.eth-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.6rem;color:var(--muted);letter-spacing:0.06em;
+}
+.eth-value{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.72rem;font-weight:500;color:var(--text);
+  margin-left:auto;
+}
+.eth-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);flex-shrink:0;
+  box-shadow:0 0 6px var(--green);
+  animation:pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot{
+  0%,100%{opacity:1;}50%{opacity:0.4;}
+}
+
+/* Hamburger */
+.hamburger-btn{
+  width:46px;height:46px;flex-shrink:0;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:14px;cursor:pointer;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;gap:5px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+  transition:transform 0.15s,border-color 0.2s;
+  position:relative;z-index:2;
+}
+.hamburger-btn:active{transform:scale(0.91);}
+.hamburger-btn span{
+  width:18px;height:2px;background:var(--text);
+  border-radius:2px;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.hamburger-btn.open{border-color:var(--orange);}
+.hamburger-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger-btn.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* ─── DRAWER ─── */
+.menu-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);
+  z-index:200;opacity:0;pointer-events:none;transition:opacity 0.3s;
+  backdrop-filter:blur(4px);
+}
+.menu-overlay.open{opacity:1;pointer-events:all;}
+
+.menu-drawer{
+  position:fixed;top:0;right:-100%;
+  width:min(290px,82vw);height:100%;
+  background:var(--bg2);
+  border-left:1px solid var(--border2);
+  z-index:201;padding:56px 20px 40px;
+  display:flex;flex-direction:column;gap:10px;
+  box-shadow:-8px 0 40px rgba(0,0,0,0.5);
+  transition:right 0.32s cubic-bezier(0.4,0,0.2,1);
+  overflow-y:auto;
+}
+.menu-drawer.open{right:0;}
+
+.drawer-section-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.6rem;text-transform:uppercase;letter-spacing:0.15em;
+  color:var(--muted);padding:0 2px;margin-top:10px;margin-bottom:2px;
+}
+.menu-btn{
+  width:100%;padding:13px 15px;
+  border-radius:13px;border:1px solid transparent;
+  font-family:'Syne',sans-serif;font-weight:600;font-size:0.82rem;
+  cursor:pointer;display:flex;align-items:center;gap:10px;
+  transition:all 0.15s;letter-spacing:0.01em;
+}
+.menu-btn:active{transform:scale(0.97);}
+.menu-btn-default{
+  background:var(--surface);color:var(--text);
+  border-color:var(--border);
+}
+.menu-btn-default:hover{border-color:var(--border2);background:var(--surface2);}
+.menu-btn-tg{
+  background:linear-gradient(135deg,#1e96d4,var(--tg));
+  color:#fff;box-shadow:0 4px 18px rgba(42,171,238,0.2);
+}
+.menu-btn-danger{
+  background:var(--danger-bg);color:var(--danger);
+  border-color:rgba(239,68,68,0.2);
+}
+.menu-divider{height:1px;background:var(--border);margin:6px 0;}
+
+/* ─── BALANCE ─── */
+.balance-section{
+  display:flex;align-items:flex-end;gap:0;
+  position:relative;margin-bottom:4px;
+  z-index:1;
+}
+.balance-value{
+  font-family:'MasFont','Syne',sans-serif;
+  font-size:clamp(5rem,20vw,7.5rem);
+  line-height:0.82;font-weight:800;
+  letter-spacing:-0.04em;color:var(--text);
+}
+.accent-dot{
+  color:var(--orange);
+  font-size:clamp(2rem,8vw,2.8rem);
+  line-height:1;margin-left:4px;margin-bottom:6px;
+}
+.balance-meta{
+  position:absolute;right:0;bottom:0;
+  display:flex;flex-direction:column;align-items:flex-end;gap:3px;
+}
+.balance-ticker{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.75rem;color:var(--orange);font-weight:500;
+  letter-spacing:0.08em;
+}
+.balance-usd{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.65rem;color:var(--muted);
+}
+
+/* ─── TAP ZONE ─── */
+.tap-zone{
+  flex-grow:1;display:flex;justify-content:center;align-items:center;
+  position:relative;margin:20px 0;z-index:1;
+  min-height:200px;
+}
+
+/* Ripple rings */
+.tap-ring{
+  position:absolute;border-radius:50%;
+  border:1.5px solid var(--orange);opacity:0;
+  pointer-events:none;
+  animation:none;
+}
+
+.coin-button{
+  width:190px;height:190px;border-radius:50%;cursor:pointer;
+  background:var(--surface);
+  border:2px solid var(--border2);
+  box-shadow:
+    0 0 0 0px rgba(255,107,0,0),
+    0 16px 48px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  display:flex;justify-content:center;align-items:center;
+  overflow:hidden;
+  transition:transform 0.08s ease,box-shadow 0.08s ease;
+  position:relative;z-index:2;
+  user-select:none;-webkit-user-select:none;
+}
+.coin-button:active{
+  transform:scale(0.93);
+  box-shadow:
+    0 0 0 8px rgba(255,107,0,0.08),
+    0 8px 24px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.coin-button img{width:100%;height:100%;object-fit:cover;pointer-events:none;}
+.coin-fallback{
+  font-family:'MasFont','Syne',sans-serif;
+  font-size:3rem;font-weight:800;
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* Tap bubbles */
+.tap-bubble{
+  position:fixed;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:1.5rem;font-weight:500;
+  color:var(--orange);
+  pointer-events:none;z-index:999;
+  animation:floatUp 0.65s cubic-bezier(0.1,0.8,0.3,1) forwards;
+}
+@keyframes floatUp{
+  0%{opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-70px) scale(0.75);}
+}
+
+/* ─── BOTTOM GRID ─── */
+.labels-row{
+  display:flex;gap:8px;margin-bottom:10px;z-index:1;position:relative;
+}
+.label-pill{
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:5px 12px;border-radius:30px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.65rem;color:var(--muted2);letter-spacing:0.06em;
+}
+
+.stats-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  z-index:1;position:relative;
+}
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;padding:16px;
+  display:flex;flex-direction:column;
+  justify-content:space-between;min-height:100px;
+  transition:border-color 0.2s;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-card-title{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;
+  text-transform:uppercase;
+}
+.stat-card-value{
+  font-family:'MasFont','Syne',sans-serif;
+  font-size:2.4rem;font-weight:800;
+  line-height:1;margin-top:12px;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.stat-card-value .unit{
+  color:var(--muted);font-size:0.75rem;
+  font-family:'IBM Plex Mono',monospace;margin-bottom:4px;
+}
+
+.discord-btn{
+  background:var(--discord);color:white;border:none;
+  border-radius:16px;padding:0 16px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;
+  cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:8px;
+  width:100%;height:100%;min-height:100px;
+  transition:opacity 0.2s,box-shadow 0.2s;letter-spacing:0.02em;
+  box-shadow:0 4px 20px rgba(88,101,242,0.25);
+}
+.discord-btn:active{opacity:0.85;}
+.discord-icon{width:18px;height:18px;fill:currentColor;flex-shrink:0;}
+
+/* ─── MODALS ─── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);
+  z-index:300;display:none;justify-content:flex-end;
+  align-items:flex-end;backdrop-filter:blur(6px);
+}
+.modal-overlay.open{display:flex;}
+.modal-sheet{
+  width:100%;max-width:430px;
+  background:var(--bg2);
+  border-radius:24px 24px 0 0;
+  border:1px solid var(--border2);border-bottom:none;
+  padding:30px 24px 48px;
+  display:flex;flex-direction:column;gap:14px;
+  animation:slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-handle{
+  width:36px;height:4px;background:var(--surface2);
+  border-radius:4px;margin:0 auto 10px;
+}
+.modal-title{font-size:1.05rem;font-weight:700;letter-spacing:-0.01em;}
+.modal-body{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.78rem;color:var(--muted2);line-height:1.7;
+}
+.modal-actions{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.modal-btn{
+  padding:14px;border-radius:13px;border:none;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.01em;
+}
+.modal-btn:active{transform:scale(0.97);}
+.modal-btn-primary{
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  color:#fff;box-shadow:0 4px 18px var(--orange-glow);
+}
+.modal-btn-cancel{background:var(--surface);color:var(--muted2);}
+.modal-btn-danger{
+  background:var(--danger);color:#fff;
+  box-shadow:0 4px 18px rgba(239,68,68,0.25);
+}
+
+.mono-box{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:13px;padding:16px;
+  font-family:'IBM Plex Mono',monospace;font-size:0.8rem;
+  letter-spacing:0.05em;line-height:2;color:var(--text);
+  word-break:break-word;
+}
+.mono-box .sw{
+  color:var(--orange);margin-right:4px;font-size:0.65rem;
+  vertical-align:middle;
+}
+
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;bottom:32px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--surface);
+  border:1px solid var(--border2);
+  color:var(--text);
+  padding:10px 20px;border-radius:30px;
+  font-family:'IBM Plex Mono',monospace;font-size:0.75rem;
+  font-weight:500;z-index:999;opacity:0;
+  transition:all 0.28s cubic-bezier(0.4,0,0.2,1);
+  white-space:nowrap;pointer-events:none;
+  box-shadow:0 8px 28px rgba(0,0,0,0.5);
+  display:flex;align-items:center;gap:8px;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0;
+}
+
+/* ─── ETH LOADING SKELETON ─── */
+@keyframes shimmer{
+  0%{background-position:-200px 0;}
+  100%{background-position:200px 0;}
+}
+.skeleton{
+  display:inline-block;border-radius:4px;
+  background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);
+  background-size:400px 100%;
+  animation:shimmer 1.4s infinite;
+  width:70px;height:12px;vertical-align:middle;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     ONBOARDING
+══════════════════════════════════════ -->
+<div class="page active" id="ob">
+  <p class="ob-eyebrow">$MAS · Ethereum Network</p>
+
+  <div class="ob-hero">
+    <div class="ob-hero-title">GET<br>STAR<span class="hi">T</span>ED<span class="hi">.</span></div>
+  </div>
+  <p class="ob-sub">Create or import your ETH wallet<br>to start earning $MAS tokens.</p>
+
+  <div class="ob-tabs">
+    <button class="ob-tab active" id="tab-create" onclick="switchTab('create')">Create New</button>
+    <button class="ob-tab" id="tab-import" onclick="switchTab('import')">Import</button>
+  </div>
+
+  <!-- CREATE -->
+  <div class="ob-panel active" id="panel-create">
+    <div class="ob-step active" id="create-step-1">
+      <input class="ob-input" id="create-username" type="text" placeholder="Username (e.g. masrur)" maxlength="24" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="ob-btn ob-btn-primary" onclick="proceedCreate()">
+        <span class="btn-label">Generate Wallet →</span>
+        <div class="spinner"></div>
+      </button>
+      <p class="ob-notice">// keys generated locally · never transmitted</p>
+    </div>
+    <div class="ob-step" id="create-step-2">
+      <div class="seed-warning">
+        <span>⚠️</span>
+        <span>Write down these 12 words <strong>in order</strong>. This is the only way to recover your wallet. Never share it with anyone.</span>
+      </div>
+      <div class="seed-box" id="seed-display"></div>
+      <button class="ob-btn ob-btn-primary" onclick="confirmSeed()">I've saved it — Enter App →</button>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <div class="ob-panel" id="panel-import">
+    <input class="ob-input" id="import-username" type="text" placeholder="Username (e.g. masrur)" maxlength="24" autocomplete="off" autocorrect="off" spellcheck="false">
+    <textarea class="ob-input" id="import-seed" placeholder="12 or 24-word seed phrase, space separated…"></textarea>
+    <button class="ob-btn ob-btn-primary" onclick="importWallet()">
+      <span class="btn-label">Import Wallet →</span>
+      <div class="spinner"></div>
+    </button>
+    <p class="ob-notice">// BIP-39 mnemonic · ETH compatible</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div class="page" id="main">
+
+  <!-- Overlays -->
+  <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+  <div class="menu-drawer" id="menuDrawer">
+    <div class="drawer-section-label">Wallet</div>
+    <button class="menu-btn menu-btn-default" onclick="openBackupModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Backup Seed Phrase
+    </button>
+    <div class="menu-divider"></div>
+    <div class="drawer-section-label">Community</div>
+    <button class="menu-btn menu-btn-tg" onclick="window.open('https://t.me','_blank');closeMenu();">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.607c-.15.674-.543.84-1.097.522l-3.04-2.24-1.467 1.41c-.163.162-.3.298-.612.298l.218-3.1 5.64-5.093c.245-.218-.054-.339-.38-.121L7.26 14.62l-2.97-.925c-.645-.2-.658-.645.135-.954l11.582-4.465c.537-.196 1.007.13.555.972z"/></svg>
+      Join Telegram
+    </button>
+    <div class="menu-divider"></div>
+    <div class="drawer-section-label">Danger Zone</div>
+    <button class="menu-btn menu-btn-danger" onclick="openDeleteModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+      Delete Wallet
+    </button>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="profile-card" id="profileCard">
+      <div class="profile-row1">
+        <div class="profile-avatar" id="profileAvatar">M</div>
+        <div class="profile-username" id="profileUsername">@masrur</div>
+        <div class="profile-badge">● ETH</div>
+      </div>
+      <div class="profile-addr-row">
+        <div class="profile-address" id="profileAddress">0x0000…0000</div>
+        <button class="copy-btn" id="copyBtn" onclick="copyAddress()" title="Copy address">
+          <!-- Copy icon -->
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="eth-balance-row">
+        <div class="eth-dot"></div>
+        <span class="eth-label">ETH BAL</span>
+        <span class="eth-value" id="ethBalance"><span class="skeleton"></span></span>
+      </div>
+    </div>
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Balance -->
+  <div class="balance-section">
+    <div class="balance-value" id="balanceDisplay">0</div>
+    <div class="accent-dot">•</div>
+    <div class="balance-meta">
+      <span class="balance-ticker">$MAS</span>
+      <span class="balance-usd" id="masUsd">≈ $0.00</span>
+    </div>
+  </div>
+
+  <!-- Tap zone -->
+  <div class="tap-zone" id="tapZone">
+    <div class="tap-ring" id="tapRing1" style="width:200px;height:200px;"></div>
+    <div class="tap-ring" id="tapRing2" style="width:200px;height:200px;"></div>
+    <div class="coin-button" id="coinButton">
+      <img src="logo.png" alt="$MAS"
+           onerror="this.style.display='none';document.getElementById('coinFb').style.display='flex';">
+      <div class="coin-fallback" id="coinFb" style="display:none;">$MAS</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="labels-row">
+    <div class="label-pill">community</div>
+    <div class="label-pill">earn</div>
+    <div class="label-pill">web3</div>
+  </div>
+  <div class="stats-grid">
+    <div style="padding:0;background:transparent;border-radius:18px;overflow:hidden;min-height:100px;">
+      <button class="discord-btn" onclick="window.open('https://discord.com','_blank')">
+        <svg class="discord-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36">
+          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.2,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+        </svg>
+        Join Discord
+      </button>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-title">Max Supply</div>
+      <div class="stat-card-value">111k<span class="unit">$MAS</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- BACKUP MODAL -->
+<div class="modal-overlay" id="backupModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔑 Backup Seed Phrase</div>
+    <div class="modal-body">Your 12-word recovery phrase. Write it down offline and never share it.</div>
+    <div class="mono-box" id="backupSeedDisplay"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" onclick="copySeed()">Copy Seed Phrase</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('backupModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚠️ Delete Wallet</div>
+    <div class="modal-body">This permanently removes your wallet from this device. Make sure you've backed up your seed phrase — this cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-danger" onclick="deleteWallet()">Yes, Delete Everything</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toastMsg"></span></div>
+
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIG — paste your NEW Alchemy key here
+═══════════════════════════════════════════ */
+const ALCHEMY_KEY = 'YOUR_NEW_ALCHEMY_KEY_HERE'; // ← replace after regenerating
+const ALCHEMY_URL = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`;
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+(function init() {
+  const w = loadWallet();
+  if (w) {
+    applyWalletToUI(w.username, w.address);
+    loadScore();
+    fetchEthBalance(w.address);
+    showPage('main');
+  }
+})();
+
+/* ═══════════════════════════════════════════
+   PAGE NAVIGATION
+═══════════════════════════════════════════ */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ═══════════════════════════════════════════
+   ONBOARDING TABS
+═══════════════════════════════════════════ */
+function switchTab(tab) {
+  ['create','import'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('panel-'+t).classList.toggle('active', t===tab);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   CREATE WALLET
+═══════════════════════════════════════════ */
+let tempWallet = null;
+
+async function proceedCreate() {
+  const username = document.getElementById('create-username').value.trim();
+  if (!username) { showToast('Enter a username first'); return; }
+  const btn = document.querySelector('#create-step-1 .ob-btn');
+  btn.classList.add('loading');
+  await sleep(350);
+  try {
+    const wallet = ethers.Wallet.createRandom();
+    tempWallet = { wallet, username };
+    const words = wallet.mnemonic.phrase.split(' ');
+    document.getElementById('seed-display').innerHTML =
+      words.map((w,i) =>
+        `<div class="seed-word"><span class="seed-num">${i+1}</span>${w}</div>`
+      ).join('');
+    document.getElementById('create-step-1').classList.remove('active');
+    document.getElementById('create-step-2').classList.add('active');
+  } catch(e) { showToast('Error generating wallet'); }
+  btn.classList.remove('loading');
+}
+
+function confirmSeed() {
+  if (!tempWallet) return;
+  const { wallet, username } = tempWallet;
+  saveWallet(username, wallet.address, wallet.mnemonic.phrase);
+  applyWalletToUI(username, wallet.address);
+  loadScore();
+  fetchEthBalance(wallet.address);
+  tempWallet = null;
+  showPage('main');
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT WALLET
+═══════════════════════════════════════════ */
+async function importWallet() {
+  const username = document.getElementById('import-username').value.trim();
+  const phrase   = document.getElementById('import-seed').value.trim();
+  if (!username) { showToast('Enter a username first'); return; }
+  if (!phrase)   { showToast('Enter your seed phrase'); return; }
+  const btn = document.querySelector('#panel-import .ob-btn');
+  btn.classList.add('loading');
+  await sleep(500);
+  try {
+    const wallet = ethers.Wallet.fromPhrase(phrase);
+    saveWallet(username, wallet.address, phrase);
+    applyWalletToUI(username, wallet.address);
+    loadScore();
+    fetchEthBalance(wallet.address);
+    showPage('main');
+    showToast('Wallet imported ✓');
+  } catch(e) { showToast('Invalid seed phrase — check and retry'); }
+  btn.classList.remove('loading');
+}
+
+/* ═══════════════════════════════════════════
+   ALCHEMY — fetch real ETH balance
+═══════════════════════════════════════════ */
+async function fetchEthBalance(address) {
+  const el = document.getElementById('ethBalance');
+  el.innerHTML = '<span class="skeleton"></span>';
+  try {
+    const res = await fetch(ALCHEMY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1,
+        method: 'eth_getBalance',
+        params: [address, 'latest']
+      })
+    });
+    const data = await res.json();
+    if (data.result) {
+      const wei = BigInt(data.result);
+      const eth = Number(wei) / 1e18;
+      el.textContent = eth.toFixed(4) + ' ETH';
+    } else {
+      el.textContent = '— ETH';
+    }
+  } catch(e) {
+    el.textContent = '— ETH';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════════ */
+function saveWallet(username, address, mnemonic) {
+  localStorage.setItem('mas_wallet', JSON.stringify({ username, address, mnemonic }));
+}
+function loadWallet() {
+  try { return JSON.parse(localStorage.getItem('mas_wallet')); } catch { return null; }
+}
+function loadScore() {
+  const s = parseInt(localStorage.getItem('mas_score')) || 0;
+  document.getElementById('balanceDisplay').textContent = s.toLocaleString();
+  document.getElementById('masUsd').textContent = '≈ $' + (s * 0.0001).toFixed(4);
+}
+
+/* ═══════════════════════════════════════════
+   APPLY WALLET TO UI
+═══════════════════════════════════════════ */
+function applyWalletToUI(username, address) {
+  document.getElementById('profileUsername').textContent = '@' + username;
+  document.getElementById('profileAddress').textContent = address.slice(0,6) + '…' + address.slice(-4);
+  document.getElementById('profileAddress').setAttribute('data-full', address);
+  // Avatar initial
+  document.getElementById('profileAvatar').textContent = username.charAt(0).toUpperCase();
+}
+
+/* ═══════════════════════════════════════════
+   COPY ADDRESS
+═══════════════════════════════════════════ */
+function copyAddress() {
+  const full = document.getElementById('profileAddress').getAttribute('data-full') ||
+               document.getElementById('profileAddress').textContent;
+  navigator.clipboard.writeText(full).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+    showToast('Address copied ✓');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+    }, 2000);
+  }).catch(() => showToast('Copy failed'));
+}
+
+/* ═══════════════════════════════════════════
+   HAMBURGER / DRAWER
+═══════════════════════════════════════════ */
+function toggleMenu() {
+  const open = document.getElementById('menuDrawer').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('open', open);
+  document.getElementById('hamburgerBtn').classList.toggle('open', open);
+}
+function closeMenu() {
+  document.getElementById('menuDrawer').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+  document.getElementById('hamburgerBtn').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+function openBackupModal() {
+  closeMenu();
+  const w = loadWallet();
+  if (!w) return;
+  const words = w.mnemonic.split(' ');
+  document.getElementById('backupSeedDisplay').innerHTML =
+    words.map((wd,i) => `<span class="sw">${i+1}</span>${wd} `).join('');
+  document.getElementById('backupModal').classList.add('open');
+}
+function openDeleteModal() {
+  closeMenu();
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+
+function copySeed() {
+  const w = loadWallet();
+  if (!w) return;
+  navigator.clipboard.writeText(w.mnemonic)
+    .then(() => showToast('Seed phrase copied ✓'))
+    .catch(() => showToast('Copy failed'));
+}
+
+function deleteWallet() {
+  localStorage.removeItem('mas_wallet');
+  localStorage.removeItem('mas_score');
+  closeModal('deleteModal');
+  showToast('Wallet deleted');
+  setTimeout(() => {
+    // reset onboarding
+    document.getElementById('create-step-2').classList.remove('active');
+    document.getElementById('create-step-1').classList.add('active');
+    document.getElementById('create-username').value = '';
+    document.getElementById('import-seed').value = '';
+    document.getElementById('import-username').value = '';
+    switchTab('create');
+    showPage('ob');
+  }, 900);
+}
+
+/* ═══════════════════════════════════════════
+   TAPPING
+═══════════════════════════════════════════ */
+const coinButton = document.getElementById('coinButton');
+
+coinButton.addEventListener('touchstart', e => {
+  e.preventDefault();
+  for (let i = 0; i < e.targetTouches.length; i++) {
+    handleTap(e.targetTouches[i].clientX, e.targetTouches[i].clientY);
+  }
+}, { passive: false });
+
+coinButton.addEventListener('mousedown', e => handleTap(e.clientX, e.clientY));
+
+function handleTap(x, y) {
+  let s = (parseInt(localStorage.getItem('mas_score')) || 0) + 1;
+  localStorage.setItem('mas_score', s);
+  document.getElementById('balanceDisplay').textContent = s.toLocaleString();
+  document.getElementById('masUsd').textContent = '≈ $' + (s * 0.0001).toFixed(4);
+  pulseRings();
+  createBubble(x, y);
+}
+
+function pulseRings() {
+  ['tapRing1','tapRing2'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.animation = 'none';
+    el.getBoundingClientRect();
+    el.style.animation = `ringPulse 0.5s ${i*0.1}s ease-out forwards`;
+  });
+}
+
+// inject ring animation dynamically
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+@keyframes ringPulse {
+  0%   { opacity:0.6; transform:scale(1); }
+  100% { opacity:0;   transform:scale(1.6); }
+}`;
+document.head.appendChild(styleEl);
+
+function createBubble(x, y) {
+  const b = document.createElement('div');
+  b.className = 'tap-bubble';
+  b.textContent = '+1';
+  b.style.left = (x - 16) + 'px';
+  b.style.top  = (y - 40) + 'px';
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 700);
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
