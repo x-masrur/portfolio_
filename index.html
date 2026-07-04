@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Masrur · Blockchain Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+@font-face{font-family:'CF';src:url('font.ttf') format('truetype');font-weight:100 900;font-display:swap;}
+
+/* ── TOKENS ─────────────────────────────── */
+:root{
+  --ink:#080808;
+  --white:#ffffff;
+  --cream:#f7f5f0;
+  --warm:#f0ede6;
+  --line:#e2ddd6;
+  --muted:#999489;
+  --serif:'CF','Playfair Display',Georgia,serif;
+  --sans:'CF','Outfit',sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans);
+  background:var(--cream);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  cursor:none;
+}
+a{text-decoration:none;color:inherit;}
+img{display:block;}
+::selection{background:var(--ink);color:var(--white);}
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-thumb{background:var(--ink);}
+
+
+/* ── NAV ────────────────────────────────── */
+.nav{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  z-index:800;width:min(92vw,680px);
+  background: rgba(10,10,12,.30);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter:saturate(200%) blur(28px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  padding:10px 14px 10px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{
+  width:32px;height:32px;border-radius:50%;overflow:hidden;
+  border:1.5px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);flex-shrink:0;
+}
+.nav-logo img{width:100%;height:100%;object-fit:cover;}
+.nav-name{
+  font-family:var(--serif);font-size:.9rem;
+  color:rgba(255,255,255,.9);letter-spacing:.01em;
+}
+.nav-links{display:flex;align-items:center;gap:1px;}
+.nav-links a{
+  font-size:.68rem;font-weight:500;color:rgba(255,255,255,.4);
+  padding:5px 12px;border-radius:999px;letter-spacing:.04em;
+  transition:color .2s,background .2s;
+}
+.nav-links a:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.09);}
+.nav-cta{
+  background:var(--white);color:var(--ink);
+  font-size:.7rem;font-weight:700;letter-spacing:.04em;
+  padding:8px 18px;border-radius:999px;white-space:nowrap;
+  transition:transform .2s,box-shadow .2s;
+}
+.nav-cta:hover{transform:scale(1.04);box-shadow:0 4px 20px rgba(0,0,0,.2);}
+@media(max-width:540px){.nav-links{display:none;}}
+
+/* ── HERO ───────────────────────────────── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:0 48px 80px;
+  position:relative;overflow:hidden;
+  background:var(--ink);
+}
+
+
+
+/* glowing orb */
+.hero-orb{
+  position:absolute;width:700px;height:700px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.07) 0%,transparent 70%);
+  top:-200px;right:-200px;pointer-events:none;z-index:0;
+  animation:orbPulse 6s ease-in-out infinite;
+}
+@keyframes orbPulse{0%,100%{transform:scale(1);opacity:.6;}50%{transform:scale(1.08);opacity:1;}}
+
+.hero-inner{position:relative;z-index:2;max-width:1100px;}
+
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(255,255,255,.12);border-radius:999px;
+  padding:6px 14px;
+  font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-bottom:32px;
+  animation:fadeUp .8s var(--ease) both;
+}
+.hero-tag .alive{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+.hero-name{
+  font-family:var(--serif);
+  font-size:clamp(3.8rem,10vw,9.5rem);
+  font-weight:900;letter-spacing:-.04em;line-height:.88;
+  color:var(--white);
+  animation:fadeUp .9s .06s var(--ease) both;
+}
+.hero-name span{
+  display:inline-block;
+  font-style:italic;font-weight:400;
+  color:rgba(255,255,255,.28);
+}
+
+.hero-bottom{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:32px;margin-top:56px;flex-wrap:wrap;
+  animation:fadeUp .9s .12s var(--ease) both;
+}
+.hero-role{
+  font-size:clamp(.9rem,2vw,1.1rem);
+  color:rgba(255,255,255,.45);
+  font-weight:300;line-height:1.75;max-width:420px;
+}
+.hero-role strong{color:rgba(255,255,255,.85);font-weight:600;}
+
+.hero-btns{display:flex;gap:10px;flex-shrink:0;}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 24px;border-radius:999px;
+  font-family:var(--sans);font-size:.79rem;font-weight:600;
+  letter-spacing:.02em;cursor:none;border:none;
+  transition:transform .2s var(--ease),box-shadow .2s;
+}
+.btn:hover{transform:translateY(-3px);}
+.btn-w{
+  background:var(--white);color:var(--ink);
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.btn-w:hover{box-shadow:0 10px 36px rgba(0,0,0,.5);}
+.btn-g{
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);
+  border:1px solid rgba(255,255,255,.12);
+}
+.btn-g:hover{background:rgba(255,255,255,.13);}
+
+/* scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:40px;right:48px;z-index:2;
+  display:flex;align-items:center;gap:8px;
+  font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.25);
+  animation:fadeUp .9s .3s var(--ease) both;
+}
+.scroll-line{
+  width:40px;height:1px;background:rgba(255,255,255,.15);
+  position:relative;overflow:hidden;
+}
+.scroll-line::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.6);
+  animation:scrollLine 2s ease-in-out infinite;
+}
+@keyframes scrollLine{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+
+@keyframes fadeUp{from{transform:translateY(32px);opacity:0;}}
+@media(max-width:540px){.hero{padding:0 24px 60px;}}
+
+/* ── MARQUEE ────────────────────────────── */
+.mq-wrap{
+  overflow:hidden;white-space:nowrap;
+  padding:20px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:var(--white);
+}
+.mq-track{display:inline-flex;animation:mq 24s linear infinite;}
+.mq-track:hover{animation-play-state:paused;}
+.mq-item{
+  display:inline-flex;align-items:center;gap:16px;
+  padding:0 36px;
+  font-family:var(--serif);font-style:italic;
+  font-size:1.1rem;color:var(--muted);flex-shrink:0;
+}
+.mq-dot{width:4px;height:4px;border-radius:50%;background:var(--line);}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── SECTIONS ───────────────────────────── */
+.sec{padding:100px 48px;max-width:1200px;margin:0 auto;}
+@media(max-width:640px){.sec{padding:72px 24px;}}
+.rule{height:1px;background:var(--line);max-width:1200px;margin:0 auto;}
+
+.eyebrow{
+  font-size:.58rem;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:'';width:16px;height:1px;background:var(--line);}
+.sec-h{
+  font-family:var(--serif);
+  font-size:clamp(2rem,4.5vw,3.6rem);
+  letter-spacing:-.03em;line-height:1.02;
+}
+
+/* ── ABOUT ──────────────────────────────── */
+#about{background:var(--cream);}
+.about-grid{
+  display:grid;grid-template-columns:1fr 1.2fr;
+  gap:64px;margin-top:56px;align-items:start;
+}
+@media(max-width:720px){.about-grid{grid-template-columns:1fr;gap:40px;}}
+
+/* photo */
+.a-photo{position:relative;}
+.a-photo-frame{
+  width:100%;aspect-ratio:3/4;border-radius:24px;
+  overflow:hidden;background:var(--warm);
+  border:1px solid var(--line);
+  position:relative;
+}
+.a-photo-frame img{width:100%;height:100%;object-fit:cover;}
+.a-photo-fb{
+  width:100%;height:100%;display:flex;
+  align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:8rem;font-style:italic;
+  color:var(--line);
+}
+
+/* floating badge */
+.a-badge{
+  position:absolute;bottom:20px;left:20px;right:20px;
+  background:rgba(8,8,8,.88);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:18px 20px;
+  color:var(--white);
+  display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;
+}
+.ab-s{display:flex;flex-direction:column;gap:2px;}
+.ab-n{font-family:var(--serif);font-size:1.8rem;letter-spacing:-.04em;line-height:1;}
+.ab-l{font-size:.6rem;color:rgba(255,255,255,.35);letter-spacing:.08em;text-transform:uppercase;}
+
+/* right content */
+.a-right{display:flex;flex-direction:column;gap:32px;}
+.a-bio{font-size:.9rem;color:var(--muted);line-height:1.9;}
+.a-bio strong{color:var(--ink);font-weight:600;}
+
+/* chains */
+.chains{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+.chain{
+  display:flex;align-items:center;gap:14px;
+  padding:15px 20px;border-bottom:1px solid var(--line);
+  transition:background .2s,padding-left .2s;
+  cursor:default;
+}
+.chain:last-child{border-bottom:none;}
+.chain:hover{background:var(--ink);padding-left:28px;}
+.chain:hover .cn{color:var(--white);}
+.chain:hover .cs{color:rgba(255,255,255,.35);}
+.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cn{font-size:.85rem;font-weight:600;transition:color .2s;}
+.cs{font-size:.63rem;color:var(--muted);margin-top:2px;transition:color .2s;}
+
+/* tags */
+.a-tags{display:flex;flex-wrap:wrap;gap:7px;}
+.tag{
+  font-size:.63rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink);background:var(--white);border:1px solid var(--line);
+  padding:5px 12px;border-radius:8px;
+  transition:background .18s,color .18s,border-color .18s,transform .18s;
+}
+.tag:hover{background:var(--ink);color:var(--white);border-color:var(--ink);transform:translateY(-2px);}
+
+.a-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-dark{background:var(--ink);color:var(--white);box-shadow:0 4px 18px rgba(0,0,0,.14);}
+.btn-dark:hover{box-shadow:0 10px 32px rgba(0,0,0,.2);}
+.btn-light{background:var(--white);color:var(--ink);border:1px solid var(--line);}
+.btn-light:hover{border-color:var(--ink);}
+
+/* ── SKILLS ─────────────────────────────── */
+#skills{background:var(--white);}
+.sk-flex{display:flex;flex-wrap:wrap;gap:11px;margin-top:48px;}
+.sk{
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  padding:18px 16px;min-width:86px;
+  background:var(--cream);border:1px solid var(--line);border-radius:16px;
+  cursor:none;position:relative;overflow:hidden;
+  transition:background .22s,border-color .22s,transform .25s var(--ease),box-shadow .25s;
+}
+.sk::before{
+  content:'';position:absolute;inset:0;
+  background:var(--ink);transform:translateY(100%);
+  transition:transform .3s var(--ease);border-radius:16px;
+}
+.sk:hover::before{transform:translateY(0);}
+.sk:hover{transform:translateY(-6px) scale(1.05);box-shadow:0 20px 48px rgba(0,0,0,.13);border-color:var(--ink);}
+.sk:hover img,.sk:hover .sk-icon{filter:brightness(10) grayscale(1);}
+.sk:hover .sk-n{color:rgba(255,255,255,.6);}
+.sk img,.sk-icon{width:32px;height:32px;object-fit:contain;position:relative;z-index:1;transition:filter .22s;}
+.sk-icon{border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.sk-n{font-size:.52rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:center;position:relative;z-index:1;transition:color .22s;line-height:1.3;}
+
+/* ── CONTACT ────────────────────────────── */
+#contact{background:var(--cream);}
+.c-layout{display:grid;grid-template-columns:1fr 1fr;gap:64px;margin-top:56px;align-items:start;}
+@media(max-width:680px){.c-layout{grid-template-columns:1fr;gap:36px;}}
+
+.c-left h3{
+  font-family:var(--serif);
+  font-size:clamp(1.6rem,3.5vw,2.8rem);
+  letter-spacing:-.03em;line-height:1.1;margin-bottom:18px;
+}
+.c-left p{font-size:.88rem;color:var(--muted);line-height:1.8;margin-bottom:28px;}
+
+.c-info{display:flex;flex-direction:column;gap:12px;}
+.c-row{
+  display:flex;align-items:center;gap:12px;
+  font-size:.82rem;font-weight:500;color:var(--ink);
+  padding:11px 14px;border:1px solid var(--line);
+  border-radius:12px;background:var(--white);
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.c-row:hover{border-color:var(--ink);transform:translateX(4px);box-shadow:0 4px 16px rgba(0,0,0,.06);}
+.c-icon{
+  width:32px;height:32px;border-radius:9px;
+  background:var(--cream);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.c-icon svg{width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+.cform{display:flex;flex-direction:column;gap:13px;}
+.cf{display:flex;flex-direction:column;gap:6px;}
+.cf label{font-size:.58rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.cf input,.cf textarea{
+  width:100%;padding:12px 15px;
+  border:1.5px solid var(--line);border-radius:12px;
+  font-family:var(--sans);font-size:.86rem;color:var(--ink);
+  background:var(--white);outline:none;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.cf input:focus,.cf textarea:focus{
+  border-color:var(--ink);box-shadow:0 0 0 3px rgba(8,8,8,.06);
+  transform:scale(1.01);
+}
+.cf textarea{resize:vertical;min-height:104px;}
+.cf-foot{display:flex;align-items:center;gap:14px;margin-top:4px;}
+#fs{font-size:.75rem;font-weight:600;}
+#fs.ok{color:#16a34a;}
+#fs.err{color:#dc2626;}
+
+/* ── FOOTER ─────────────────────────────── */
+.ft{
+  border-top:1px solid var(--line);
+  padding:36px 48px;max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+}
+@media(max-width:540px){.ft{padding:28px 24px;}}
+.ft-c{font-size:.7rem;color:var(--muted);}
+.ft-l{display:flex;gap:18px;}
+.ft-l a{font-size:.7rem;color:var(--muted);transition:color .2s;}
+.ft-l a:hover{color:var(--ink);}
+
+/* ── CONNECT WIDGET ─────────────────────── */
+#connect-root{position:fixed;bottom:28px;right:28px;z-index:8000;display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
+
+.connect-options{
+  display:flex;flex-direction:column;align-items:flex-end;gap:9px;
+  pointer-events:none;
+}
+.connect-options.open{pointer-events:all;}
+
+.c-opt{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px 9px 12px;
+  background:var(--white);
+  border:1px solid var(--line);border-radius:999px;
+  font-size:.75rem;font-weight:600;color:var(--ink);
+  box-shadow:0 4px 20px rgba(0,0,0,.09);
+  cursor:none;
+  text-decoration:none;
+  transform:translateY(16px) scale(.92);
+  opacity:0;
+  transition:
+    transform .35s var(--ease),
+    opacity .3s ease,
+    box-shadow .2s;
+}
+.c-opt:nth-child(1){transition-delay:.00s;}
+.c-opt:nth-child(2){transition-delay:.04s;}
+.c-opt:nth-child(3){transition-delay:.08s;}
+.c-opt:nth-child(4){transition-delay:.12s;}
+.connect-options.open .c-opt{transform:translateY(0) scale(1);opacity:1;}
+.c-opt:hover{box-shadow:0 8px 28px rgba(0,0,0,.14);transform:translateY(-2px) scale(1)!important;}
+
+.c-opt-icon{
+  width:28px;height:28px;border-radius:50%;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.c-opt-icon img,.c-opt-icon svg{width:28px;height:28px;object-fit:cover;}
+
+/* trigger */
+.connect-trigger{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--ink);border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:none;box-shadow:0 8px 28px rgba(0,0,0,.22);
+  transition:transform .25s var(--ease),box-shadow .25s;
+  overflow:hidden;position:relative;
+}
+.connect-trigger img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.connect-trigger .ct-icon{
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  transition:transform .3s var(--ease),opacity .3s;
+}
+.connect-trigger .ct-icon.logo{opacity:1;transform:scale(1);}
+.connect-trigger .ct-icon.close{opacity:0;transform:scale(.5) rotate(-90deg);}
+.connect-trigger.open .ct-icon.logo{opacity:0;transform:scale(.5) rotate(90deg);}
+.connect-trigger.open .ct-icon.close{opacity:1;transform:scale(1) rotate(0deg);}
+.connect-trigger:hover{transform:scale(1.08);box-shadow:0 12px 36px rgba(0,0,0,.3);}
+
+/* ── REVEAL ─────────────────────────────── */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
+.reveal.in{opacity:1;transform:none;}
+.reveal:nth-child(2){transition-delay:.08s;}
+.reveal:nth-child(3){transition-delay:.14s;}
+</style>
+</head>
+<body>
+
+<!-- cursor -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- ══ NAV ════════════════════════════════ -->
+<div class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo"><img src="logo.png" alt="M" onerror="this.style.display='none'"></div>
+    <span class="nav-name">masrur</span>
+  </div>
+  <nav class="nav-links">
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <a class="nav-cta" href="#contact">Hire Me</a>
+</div>
+
+<!-- ══ HERO ═══════════════════════════════ -->
+<section class="hero">
+  <div class="hero-orb"></div>
+  <div class="hero-inner">
+    <div class="hero-tag"><span class="alive"></span> Available for work</div>
+    <h1 class="hero-name">
+      I build<br>
+      <span>the</span> chain,<br>
+      &amp; <span>the</span> brand.
+    </h1>
+    <div class="hero-bottom">
+      <p class="hero-role">
+        <strong>Blockchain Developer</strong> &amp; Brand Designer with
+        <strong>5+ years</strong> shipping smart contracts across
+        ERC-20, BEP-20, POL &amp; TON —
+        currently building <strong>mecozx</strong>.
+      </p>
+      <div class="hero-btns">
+        <a class="btn btn-w" href="cv.pdf" download>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          CV
+        </a>
+        <a class="btn btn-g" href="#contact">Let's Talk</a>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint"><div class="scroll-line"></div> Scroll</div>
+</section>
+
+<!-- ══ MARQUEE ════════════════════════════ -->
+<div class="mq-wrap">
+  <div class="mq-track">
+    <span class="mq-item">Blockchain Developer<span class="mq-dot"></span></span>
+    <span class="mq-item">Brand Designer<span class="mq-dot"></span></span>
+    <span class="mq-item">Smart Contracts<span class="mq-dot"></span></span>
+    <span class="mq-item">ERC-20 · BEP-20 · POL<span class="mq-dot"></span></span>
+    <span class="mq-item">TON Ecosystem<span class="mq-dot"></span></span>
+    <span class="mq-item">mecozx Founder<span class="mq-dot"></span></span>
+    <span class="mq-item">5+ Years<span class="mq-dot"></span></span>
+    <span class="mq-item">Available for Work<span class="mq-dot"></span></span>
+    <span class="mq-item">Blockchain Developer<span class="mq-dot"></span></span>
+    <span class="mq-item">Brand Designer<span class="mq-dot"></span></span>
+    <span class="mq-item">Smart Contracts<span class="mq-dot"></span></span>
+    <span class="mq-item">ERC-20 · BEP-20 · POL<span class="mq-dot"></span></span>
+    <span class="mq-item">TON Ecosystem<span class="mq-dot"></span></span>
+    <span class="mq-item">mecozx Founder<span class="mq-dot"></span></span>
+    <span class="mq-item">5+ Years<span class="mq-dot"></span></span>
+    <span class="mq-item">Available for Work<span class="mq-dot"></span></span>
+  </div>
+</div>
+
+<!-- ══ ABOUT ══════════════════════════════ -->
+<div class="rule"></div>
+<section class="sec reveal" id="about">
+  <div class="eyebrow">About</div>
+  <h2 class="sec-h">Building on-chain<br>&amp; on-brand since 2019.</h2>
+
+  <div class="about-grid">
+    <!-- photo -->
+    <div class="a-photo">
+      <div class="a-photo-frame">
+        <img src="profile.jpg" alt="Masrur" onerror="this.style.display='none';document.getElementById('ph-fb').style.display='flex'">
+        <div class="a-photo-fb" id="ph-fb" style="display:none">M</div>
+      </div>
+      <div class="a-badge">
+        <div class="ab-s"><div class="ab-n">5+</div><div class="ab-l">Years Active</div></div>
+        <div class="ab-s"><div class="ab-n">40+</div><div class="ab-l">Contracts</div></div>
+        <div class="ab-s"><div class="ab-n">3</div><div class="ab-l">Ecosystems</div></div>
+        <div class="ab-s"><div class="ab-n">∞</div><div class="ab-l">Still Building</div></div>
+      </div>
+    </div>
+
+    <!-- right -->
+    <div class="a-right">
+      <p class="a-bio">I design and deploy decentralised systems — from <strong>ERC-20, BEP-20, POL</strong> token contracts to full-stack Web3 dApps — and pair every project with sharp visual identity. Currently building <strong>mecozx</strong>, a battery-free biometric smart card for Web3 self-custody.</p>
+
+      <div class="chains">
+        <div class="chain"><div class="cdot" style="background:#627eea"></div><div><div class="cn">Ethereum</div><div class="cs">ERC-20 · ERC-721 · Solidity</div></div></div>
+        <div class="chain"><div class="cdot" style="background:#f3ba2f"></div><div><div class="cn">BNB Chain</div><div class="cs">BEP-20 · PancakeSwap</div></div></div>
+        <div class="chain"><div class="cdot" style="background:#8247e5"></div><div><div class="cn">Polygon (POL)</div><div class="cs">Layer-2 · Gas optimisation</div></div></div>
+        <div class="chain"><div class="cdot" style="background:#0088cc"></div><div><div class="cn">TON</div><div class="cs">FunC · Telegram Mini Apps</div></div></div>
+      </div>
+
+      <div class="a-tags">
+        <span class="tag">ERC-20</span><span class="tag">BEP-20</span>
+        <span class="tag">Polygon</span><span class="tag">TON</span>
+        <span class="tag">DeFi</span><span class="tag">Brand ID</span>
+        <span class="tag">Self-Custody</span><span class="tag">mecozx</span>
+      </div>
+
+      <div class="a-btns">
+        <a class="btn btn-dark" href="cv.pdf" download>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Full CV
+        </a>
+        <a class="btn btn-light" href="mailto:masrurxyz@outlook.com">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg>
+          Email Me
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SKILLS ═════════════════════════════ -->
+<div class="rule"></div>
+<section class="sec reveal" id="skills">
+  <div class="eyebrow">Stack</div>
+  <h2 class="sec-h">Skills &amp; Tools</h2>
+  <div class="sk-flex">
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt=""><div class="sk-n">HTML5</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt=""><div class="sk-n">CSS3</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg" alt=""><div class="sk-n">Tailwind</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt=""><div class="sk-n">JavaScript</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" alt=""><div class="sk-n">TypeScript</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt=""><div class="sk-n">React</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" alt=""><div class="sk-n">Next.js</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg" alt=""><div class="sk-n">Firebase</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/solidity/solidity-original.svg" alt=""><div class="sk-n">Solidity</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/web3js/web3js-original.svg" alt=""><div class="sk-n">Web3.js</div></div>
+    <div class="sk">
+      <div class="sk-icon" style="background:#0088cc;width:32px;height:32px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-8l-3.5 3.5-1.06-1.06L12 5.38l5.56 5.56-1.06 1.06L13 7.5v9h-2z"/></svg>
+      </div>
+      <div class="sk-n">TON</div>
+    </div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt=""><div class="sk-n">Node.js</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt=""><div class="sk-n">Python</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" alt=""><div class="sk-n">Git</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt=""><div class="sk-n">GitHub</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" alt=""><div class="sk-n">Figma</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt=""><div class="sk-n">Docker</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg" alt=""><div class="sk-n">AWS</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redux/redux-original.svg" alt=""><div class="sk-n">Redux</div></div>
+    <div class="sk"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg" alt=""><div class="sk-n">Express</div></div>
+  </div>
+</section>
+
+<!-- ══ CONTACT ════════════════════════════ -->
+<div class="rule"></div>
+<section class="sec reveal" id="contact">
+  <div class="eyebrow">Contact</div>
+  <h2 class="sec-h">Got a project?<br>Let's build it.</h2>
+  <div class="c-layout">
+    <div class="c-left">
+      <h3>Reach out &amp;<br>let's create<br>something real.</h3>
+      <p>Blockchain project, smart contract, or brand identity — I'm open to freelance &amp; full collaboration. Reply within 24 h.</p>
+      <!--<div class="c-info">
+        <div class="c-row">
+          <div class="c-icon"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg></div>
+          masrur@mecozx.com
+        </div>
+        <div class="c-row">
+          <div class="c-icon"><svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg></div>
+          x.com/mecozxpro
+        </div>
+        <div class="c-row">
+          <div class="c-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+          discord.gg/6GWPXwXWPM
+        </div>
+      </div>-->
+    </div>
+    <div class="cform">
+      <div class="cf"><label>Name</label><input type="text" id="fn" placeholder="Your name"></div>
+      <div class="cf"><label>Email</label><input type="email" id="fe" placeholder="you@domain.com"></div>
+      <div class="cf"><label>Message</label><textarea id="fm" placeholder="Tell me about your project…"></textarea></div>
+      <div class="cf-foot">
+        <button class="btn btn-dark" onclick="send()">
+          Send
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+        <span id="fs"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- footer -->
+<div style="height:1px;background:var(--line);max-width:1200px;margin:0 auto;"></div>
+<div class="ft">
+  <span class="ft-c">© 2026 Masrur Ahmmed</span>
+  <div class="ft-l">
+    <a href="https://x.com/mecozxpro" target="_blank">Twitter</a>
+    <a href="https://discord.gg/6GWPXwXWPM" target="_blank">Discord</a>
+    <a href="https://mecozx.com" target="_blank">mecozx</a>
+    <a href="https://github.com/" target="_blank">GitHub</a>
+  </div>
+</div>
+
+<!-- ══ CONNECT WIDGET ═════════════════════ -->
+<div id="connect-root">
+  <div class="connect-options" id="copts">
+
+    <!-- WhatsApp -->
+    <a class="c-opt" href="https://wa.me/+8801885549718" target="_blank">
+      <div class="c-opt-icon">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="24" fill="#25D366"/>
+          <path d="M34.5 13.5C32 11 28.7 9.5 25 9.5c-7.7 0-14 6.3-14 14 0 2.5.6 4.8 1.8 6.9L10.5 38l7.8-2.3c2 1.1 4.2 1.7 6.7 1.7 7.7 0 14-6.3 14-14 0-3.7-1.5-7.2-4.5-9.9zM25 34.7c-2.2 0-4.3-.6-6.1-1.7l-.4-.3-4.6 1.4 1.3-4.5-.3-.4c-1.2-1.9-1.8-4-1.8-6.3 0-6.4 5.2-11.6 11.6-11.6 3.1 0 6 1.2 8.2 3.4 2.2 2.2 3.4 5.1 3.4 8.2.1 6.4-5.1 11.8-11.3 11.8zm6.4-8.7c-.4-.2-2.1-1-2.4-1.2-.3-.2-.6-.2-.8.2-.2.4-.9 1.2-1.1 1.4-.2.3-.4.3-.8.1-.4-.2-1.6-.6-3-1.9-1.1-1-1.8-2.2-2.1-2.6-.2-.4 0-.6.2-.8.2-.2.4-.4.5-.6.2-.2.2-.4.4-.6.1-.2 0-.5-.1-.7-.1-.2-.8-1.9-1.1-2.6-.3-.7-.6-.6-.8-.6h-.7c-.3 0-.7.1-1 .4-.4.4-1.4 1.3-1.4 3.2s1.4 3.7 1.6 4c.2.2 2.8 4.3 6.8 6 .9.4 1.7.6 2.3.8.9.3 1.8.2 2.5.1.8-.1 2.4-1 2.7-1.9.3-.9.3-1.7.2-1.9-.1-.1-.3-.2-.7-.4z" fill="white"/>
+        </svg>
+      </div>
+      WhatsApp
+    </a>
+
+    <!-- Discord -->
+    <a class="c-opt" href="https://discord.gg/zeJ7r8c8" target="_blank">
+      <div class="c-opt-icon">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="24" fill="#5865F2"/>
+          <path d="M33.5 14.6A23.5 23.5 0 0028 13a.09.09 0 00-.1.05c-.2.38-.44.87-.6 1.25a21.8 21.8 0 00-6.6 0 12.7 12.7 0 00-.6-1.25A.09.09 0 0020 13a23.5 23.5 0 00-5.5 1.6.08.08 0 00-.04.03C11.6 19.7 10.7 24.7 11.1 29.6a.1.1 0 00.04.07 23.7 23.7 0 007.1 3.57.1.1 0 00.1-.04c.55-.74 1.04-1.53 1.46-2.35a.09.09 0 00-.05-.13 15.6 15.6 0 01-2.22-1.05.09.09 0 010-.15l.44-.35a.09.09 0 01.1-.01c4.66 2.12 9.7 2.12 14.3 0a.09.09 0 01.1.01l.44.35a.09.09 0 010 .15 14.6 14.6 0 01-2.23 1.05.09.09 0 00-.05.13c.43.82.92 1.61 1.46 2.35a.1.1 0 00.1.04 23.6 23.6 0 007.12-3.57.1.1 0 00.04-.07c.47-5.6-.79-10.56-3.33-14.91a.08.08 0 00-.04-.04zM19.5 26.8c-1.4 0-2.56-1.3-2.56-2.88s1.13-2.88 2.56-2.88c1.44 0 2.58 1.31 2.56 2.88 0 1.58-1.13 2.88-2.56 2.88zm9.46 0c-1.41 0-2.56-1.3-2.56-2.88s1.13-2.88 2.56-2.88c1.44 0 2.58 1.31 2.56 2.88 0 1.58-1.12 2.88-2.56 2.88z" fill="white"/>
+        </svg>
+      </div>
+      Discord
+    </a>
+
+    <!-- Farcaster -->
+    <a class="c-opt" href="https://warpcast.com/masrur" target="_blank">
+      <div class="c-opt-icon">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="24" fill="#8465CB"/>
+          <path d="M15 13h18v4h-4v14h-4V17h-2v14h-4V17h-4v-4z" fill="white"/>
+          <rect x="13" y="31" width="22" height="4" rx="2" fill="white"/>
+        </svg>
+      </div>
+      Farcaster
+    </a>
+
+    <!-- Instagram -->
+    <a class="c-opt" href="https://instagram.com/masrur.xyz" target="_blank">
+      <div class="c-opt-icon">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="ig-g" cx="30%" cy="107%" r="130%">
+              <stop offset="0%" stop-color="#ffd676"/>
+              <stop offset="25%" stop-color="#f2a454"/>
+              <stop offset="50%" stop-color="#f05c35"/>
+              <stop offset="70%" stop-color="#d53e91"/>
+              <stop offset="100%" stop-color="#9341a5"/>
+            </radialGradient>
+          </defs>
+          <circle cx="24" cy="24" r="24" fill="url(#ig-g)"/>
+          <rect x="14" y="14" width="20" height="20" rx="6" fill="none" stroke="white" stroke-width="2.5"/>
+          <circle cx="24" cy="24" r="5" fill="none" stroke="white" stroke-width="2.5"/>
+          <circle cx="30.5" cy="17.5" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      Instagram
+    </a>
+
+  </div>
+
+  <!-- trigger -->
+  <button class="connect-trigger" id="ctrig">
+    <div class="ct-icon logo">
+      <img src="logo.png" alt="Connect" onerror="this.style.display='none';document.getElementById('ct-fb').style.display='flex'">
+      <div id="ct-fb" style="display:none;color:white;font-size:1.1rem;font-weight:900;">M</div>
+    </div>
+    <div class="ct-icon close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+  </button>
+</div>
+
+<script>
+/* ── CURSOR ── */
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
+document.querySelectorAll('a,button,.sk,.chain,.tag,.c-row').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('hovering'));
+});
+
+/* ── REVEAL ── */
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── CONNECT WIDGET ── */
+const ctrig=document.getElementById('ctrig'),copts=document.getElementById('copts');
+let open=false;
+ctrig.addEventListener('click',()=>{
+  open=!open;
+  ctrig.classList.toggle('open',open);
+  copts.classList.toggle('open',open);
+});
+document.addEventListener('click',e=>{
+  if(!document.getElementById('connect-root').contains(e.target)&&open){
+    open=false;ctrig.classList.remove('open');copts.classList.remove('open');
+  }
+});
+
+/* ── CONTACT FORM ── */
+async function send(){
+  const n=document.getElementById('fn').value.trim();
+  const e=document.getElementById('fe').value.trim();
+  const m=document.getElementById('fm').value.trim();
+  const s=document.getElementById('fs');
+  if(!n||!e||!m){s.textContent='Fill all fields.';s.className='err';return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)){s.textContent='Check email.';s.className='err';return;}
+  s.textContent='Sending…';s.className='';
+  try{
+    /* Replace YOUR_SHEETDB_ID with your actual SheetDB API ID */
+    const r=await fetch('https://sheetdb.io/api/v1/YOUR_SHEETDB_ID',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({data:[{Name:n,Email:e,Message:m,Date:new Date().toISOString()}]})
+    });
+    if(r.ok){s.textContent='✓ Sent — I\'ll reply soon.';s.className='ok';['fn','fe','fm'].forEach(id=>document.getElementById(id).value='');}
+    else throw 0;
+  }catch{s.textContent='✕ Failed — email directly.';s.className='err';}
+}
+</script>
+</body>
+</html>
